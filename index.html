@@ -1,321 +1,470 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sentient Tower — Stacking Game</title>
-  <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#7dd3fc}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    body{background:linear-gradient(180deg,#071126 0%, #071420 60%);color:#e6eef6;display:flex;align-items:center;justify-content:center}
-    .wrap{width:100%;max-width:1100px;margin:24px;padding:18px;box-sizing:border-box}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    h1{font-size:20px;margin:0}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;padding:8px 12px;border-radius:8px;cursor:pointer}
-    button.primary{background:var(--accent);color:#042033;border:none}
-    #gameCard{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:start}
-    #gameArea{background:linear-gradient(180deg,#072034 0%, #041226 100%);border-radius:8px;padding:8px;min-height:600px;position:relative;overflow:hidden}
-    canvas{display:block;width:100%;height:600px;border-radius:6px;background:linear-gradient(180deg, rgba(0,0,0,0.05), transparent)}
-    .sidebar{padding:8px}
-    .stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-bottom:10px}
-    .note{font-size:13px;color:#bcd7ea}
-    .nextPreview{height:140px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));overflow:hidden}
-    .nextPreview img{max-width:100%;max-height:100%;object-fit:contain}
-    footer{font-size:13px;color:#9fc7de;margin-top:10px}
-    @media(max-width:900px){#gameCard{grid-template-columns:1fr}canvas{height:480px}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sentient Tower — Pink Stack</title>
+<style>
+  :root{
+    --bg1:#070717;
+    --bg2:#0f0620;
+    --panel:#071026;
+    --pink:#ff5aa3;
+    --pink-dark:#e64a8f;
+    --muted:rgba(255,255,255,0.08);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#e9f6ff}
+  body{
+    background: linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .game-wrap{width:100%;max-width:520px;}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  h1{font-size:18px;margin:0}
+  .controls{display:flex;gap:8px;align-items:center}
+  button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;padding:8px 12px;border-radius:8px;cursor:pointer}
+  button.primary{background:var(--pink);border:none;color:#111}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px}
+  #game{
+    background:linear-gradient(180deg,#041028 0%, #00121a 100%);
+    border-radius:10px; height:640px; position:relative; overflow:hidden; box-shadow: 0 8px 30px rgba(5,5,12,0.7);
+    display:flex;flex-direction:column;
+  }
+  canvas{width:100%;height:100%;display:block}
+  .hud{display:flex;justify-content:space-between;padding:10px 12px}
+  .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-size:14px}
+  .hint{font-size:13px;color:#9ecae7}
+  .footer{padding:10px 12px;color: #9fc7de;font-size:13px}
+  .bigcenter{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
+  }
+  .btn-large{padding:10px 14px;border-radius:10px}
+  @media(max-width:420px){ #game{height:560px} }
+</style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="game-wrap">
     <header>
-      <h1>Sentient Tower — Stacking Game</h1>
+      <h1>Sentient Tower — Pink Stack</h1>
       <div class="controls">
-        <div class="note">Controls: ← → to move • Space / Click to drop</div>
-        <button id="startBtn" class="primary">Start Game</button>
+        <div class="hint">Tap / Click / Space to stop</div>
       </div>
     </header>
 
-    <div id="gameCard">
-      <div id="gameArea">
-        <canvas id="canvas" width="800" height="600"></canvas>
+    <div class="card">
+      <div class="hud">
+        <div class="stat">Score: <span id="score">0</span></div>
+        <div class="stat">Best: <span id="best">0</span></div>
+        <div class="stat">Level: <span id="level">1</span></div>
       </div>
 
-      <aside class="sidebar">
-        <div class="stat"><strong>Score:</strong> <span id="score">0</span></div>
-        <div class="stat"><strong>Best:</strong> <span id="best">0</span></div>
-        <div class="stat">
-          <div style="margin-bottom:8px"><strong>Next Image</strong></div>
-          <div class="nextPreview" id="nextPreview"><img id="nextImg" src="" alt="next"></div>
-        </div>
-        <div class="stat">
-          <div class="note">Place your 18 images in a folder named <code>/images</code> and name them <code>img1.jpg</code>...<code>img18.jpg</code> (png ok). You can change paths in the code.</div>
-        </div>
-        <div class="stat">
-          <button id="restartBtn">Restart</button>
-        </div>
-      </aside>
-    </div>
+      <div id="game">
+        <canvas id="c"></canvas>
 
-    <footer>
-      Tip: as the tower grows, blocks get slightly smaller and may rotate — stack carefully!
-    </footer>
+        <div id="overlayStart" class="bigcenter" style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:20px">Tap to Start</div>
+          <button id="startBtn" class="primary btn-large">Start Game</button>
+          <div style="font-size:13px;color:#9fc7de;margin-top:6px">Blocks are pink; thin slices remain solid pink.</div>
+        </div>
+
+        <div id="overlayGameOver" class="bigcenter" style="display:none">
+          <div style="font-size:26px">Game Over</div>
+          <div style="margin-top:6px;font-size:16px">Score: <span id="finalScore">0</span></div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button id="retryBtn" class="btn-large">Retry</button>
+            <button id="homeBtn" class="btn-large">Home</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">Use left / right arrows to nudge while the block is sliding. If overlap becomes too small — game ends.</div>
+    </div>
   </div>
 
 <script>
-// ============= CONFIG ==============
-const IMAGE_COUNT = 18; // you have 18 images (img1.jpg ... img18.jpg)
-const IMAGE_PATH = (i)=>`/images/img${i}.png`; // change if your folder/names differ
-const CANVAS_W = 800; const CANVAS_H = 600;
-// ====================================
+/*
+  Sentient Tower — Pink Stack
+  - Sliding block moves horizontally; click/space/tap to stop and slice to previous.
+  - If overlap <= 0 -> game over.
+  - If resulting slice is very thin (<= MIN_VISIBLE), it's still shown as solid pink (no images).
+  - Includes score, best (localStorage), level (difficulty increases).
+*/
 
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width * devicePixelRatio);
+  canvas.height = Math.floor(rect.height * devicePixelRatio);
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
 
-const startBtn = document.getElementById('startBtn');
-const restartBtn = document.getElementById('restartBtn');
 const scoreEl = document.getElementById('score');
 const bestEl = document.getElementById('best');
-const nextImgEl = document.getElementById('nextImg');
+const levelEl = document.getElementById('level');
+const overlayStart = document.getElementById('overlayStart');
+const overlayGameOver = document.getElementById('overlayGameOver');
+const startBtn = document.getElementById('startBtn');
+const retryBtn = document.getElementById('retryBtn');
+const homeBtn = document.getElementById('homeBtn');
+const finalScore = document.getElementById('finalScore');
 
-let images = [];
-let game;
+let best = parseInt(localStorage.getItem('sentient_tower_best')||'0', 10);
+bestEl.textContent = best;
 
-function preloadImages(count){
-  const promises = [];
-  for(let i=1;i<=count;i++){
-    const img = new Image();
-    img.src = IMAGE_PATH(i);
-    images.push(img);
-    promises.push(new Promise((res)=>{img.onload = ()=>res(); img.onerror = ()=>res();}));
-  }
-  return Promise.all(promises);
+const PINK = '#ff5aa3';
+const PINK_DARK = '#e64a8f';
+const SHADOW = 'rgba(0,0,0,0.35)';
+
+const GAME_W = 360; // logical width for layouting (we will scale)
+let scale = 1;
+
+const STATE = {
+  blocks: [], // stacked blocks (from bottom -> top)
+  moving: null, // current moving block object
+  score: 0,
+  running: false,
+  level: 1,
+  speed: 160, // px/sec base (scaled)
+  minVisible: 18, // px (if slice <= this, still pink but visible)
+  lastTime: 0,
+  direction: 1,
+};
+
+// Utility: create a block object
+function makeBlock(x, y, w, h, color){
+  return { x, y, w, h, color, vx:0, sliding:false };
 }
 
-class Block{
-  constructor(opts){
-    this.img = opts.img;
-    this.w = opts.w;
-    this.h = opts.h;
-    this.x = opts.x; // center x
-    this.y = opts.y; // center y
-    this.vy = 0;
-    this.vx = 0;
-    this.rotation = opts.rotation || 0; // radians
-    this.rotationSpeed = opts.rotationSpeed || 0;
-    this.falling = true; // is it in falling state
-    this.placed = false; // placed on stack
-  }
-  draw(ctx){
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
-    ctx.drawImage(this.img, -this.w/2, -this.h/2, this.w, this.h);
-    ctx.restore();
-  }
+// Initialize / Start game
+function startGame(){
+  // scale depends on canvas width
+  const cw = canvas.getBoundingClientRect().width;
+  scale = cw / GAME_W;
+
+  STATE.blocks = [];
+  STATE.score = 0;
+  STATE.level = 1;
+  STATE.speed = 160;
+  STATE.running = true;
+  STATE.lastTime = performance.now();
+  STATE.direction = 1;
+
+  // create ground block (base) centered
+  const initialW = 220 * scale;
+  const groundW = Math.min(cw - 20, initialW);
+  const groundH = 36 * scale;
+  const baseX = cw/2;
+  const baseY = canvas.getBoundingClientRect().height - groundH/2 - 10;
+  STATE.blocks.push(makeBlock(baseX, baseY, groundW, groundH, PINK_DARK));
+  spawnMovingBlock();
+
+  scoreEl.textContent = STATE.score;
+  levelEl.textContent = STATE.level;
+  overlayStart.style.display = 'none';
+  overlayGameOver.style.display = 'none';
 }
 
-class Game{
-  constructor(){
-    this.reset();
-    this.bind();
+// Spawn the sliding block at the top of the current tower
+function spawnMovingBlock(){
+  const top = STATE.blocks[STATE.blocks.length - 1];
+  const blockW = top.w;
+  const blockH = top.h;
+  const spawnY = top.y - top.h - 10;
+  // start from left edge outside the canvas
+  const cw = canvas.getBoundingClientRect().width;
+  const startX = -blockW/2;
+  const b = makeBlock(startX, spawnY, blockW, blockH, PINK);
+  b.sliding = true;
+  b.vx = STATE.speed * STATE.direction; // px/sec (unscaled since canvas uses CSS units)
+  STATE.moving = b;
+}
+
+// Stop the sliding block and slice
+function stopBlock(){
+  if(!STATE.running || !STATE.moving) return;
+  const top = STATE.blocks[STATE.blocks.length - 1];
+  const cur = STATE.moving;
+
+  // compute overlap in x (axis-aligned)
+  const leftA = cur.x - cur.w/2;
+  const rightA = cur.x + cur.w/2;
+  const leftB = top.x - top.w/2;
+  const rightB = top.x + top.w/2;
+  const overlap = Math.max(0, Math.min(rightA,rightB) - Math.max(leftA,leftB));
+
+  if(overlap <= 0){
+    // miss => game over
+    endGame();
+    return;
   }
-  reset(){
-    this.blocks = [];
-    this.score = 0;
-    this.speedIncrease = 0;
-    this.spawnX = CANVAS_W/2;
-    this.current = null;
-    this.gameOver = false;
-    this.spawnNext();
-    this.best = parseInt(localStorage.getItem('sentient_tower_best')||'0',10);
-    bestEl.textContent = this.best;
+
+  // center of overlapped piece
+  const overlapLeft = Math.max(leftA,leftB);
+  const overlapRight = Math.min(rightA,rightB);
+  const overlapCenter = (overlapLeft + overlapRight)/2;
+
+  // left cut width and right cut width
+  const leftCut = overlapLeft - leftA;
+  const rightCut = rightA - overlapRight;
+
+  // push the overlapped part as new stack piece
+  const newW = overlap;
+  const newX = overlapCenter;
+  const newY = cur.y;
+  const newBlock = makeBlock(newX, newY, newW, cur.h, PINK);
+  newBlock.sliding = false;
+  STATE.blocks.push(newBlock);
+
+  // update score, level, speed
+  STATE.score += 1;
+  if(STATE.score % 6 === 0){ STATE.level += 1; STATE.speed += 22; }
+
+  // create falling pieces for leftCut and rightCut (if any) and animate them
+  const fallingPieces = [];
+  if(leftCut > 0.5){
+    const w = leftCut;
+    const x = (leftA + overlapLeft)/2;
+    fallingPieces.push({ x, y:cur.y, w, h:cur.h, vx:-80 + Math.random()*-40, vy: 30 + Math.random()*60, rot: (Math.random()-0.5)*0.6 });
   }
-  bind(){
-    this.keys = {left:false,right:false};
-    window.addEventListener('keydown', (e)=>{
-      if(e.key==='ArrowLeft') this.keys.left = true;
-      if(e.key==='ArrowRight') this.keys.right = true;
-      if(e.key===' '){ e.preventDefault(); this.dropCurrent(); }
-    });
-    window.addEventListener('keyup', (e)=>{
-      if(e.key==='ArrowLeft') this.keys.left = false;
-      if(e.key==='ArrowRight') this.keys.right = false;
-    });
-    canvas.addEventListener('click', ()=>{ this.dropCurrent(); });
+  if(rightCut > 0.5){
+    const w = rightCut;
+    const x = (overlapRight + rightA)/2;
+    fallingPieces.push({ x, y:cur.y, w, h:cur.h, vx: 80 + Math.random()*40, vy: 30 + Math.random()*60, rot: (Math.random()-0.5)*0.6 });
   }
-  spawnNext(){
-    // pick random image
-    const idx = Math.floor(Math.random()*images.length);
-    const img = images[idx];
-    // scale slightly smaller as score increases
-    const scaleBase = 0.9 - Math.min(0.35, this.score*0.01);
-    const w = 220 * (scaleBase + Math.random()*0.2); // base width
-    const ar = img.naturalWidth && img.naturalHeight ? img.naturalHeight/img.naturalWidth : 1;
-    const h = w * (ar||0.66);
-    const rotation = (Math.random()-0.5) * 0.12 * (1 + this.score*0.03);
-    const rotationSpeed = (Math.random()-0.5) * 0.002;
-    // spawn near top center
-    this.current = new Block({img,w,h,x:CANVAS_W/2,y:60,rotation,rotationSpeed});
-    // preview
-    nextImgEl.src = img.src;
+
+  // if the resulting part is tiny but >0, keep it (still pink). If <= 0, game over handled above.
+  // Increase difficulty: slightly shrink width of next moving block based on level to make it harder (optional)
+  // spawn the next moving block aligned to the left side for variety
+  STATE.moving = null;
+
+  // animate falling pieces: attach to state for render loop
+  STATE.fallingPieces = STATE.fallingPieces || [];
+  STATE.fallingPieces.push(...fallingPieces);
+
+  // move camera up (we simulate by shifting y of all blocks down a bit to give stacking upward illusion)
+  // We'll animate a small upward camera effect by shifting all blocks downward visually
+  shiftTowerUp(newBlock.h + 6);
+
+  // update UI
+  scoreEl.textContent = STATE.score;
+  levelEl.textContent = STATE.level;
+  if(STATE.score > best){ best = STATE.score; localStorage.setItem('sentient_tower_best', String(best)); bestEl.textContent = best; }
+
+  // spawn next block after a tiny delay for UX
+  setTimeout(()=>{ spawnMovingBlock(); }, 180);
+}
+
+function shiftTowerUp(deltaY){
+  // Move all existing blocks down by deltaY (so new block appears higher)
+  for(let b of STATE.blocks){
+    b.y += deltaY;
   }
-  dropCurrent(){
-    if(!this.current || this.current.placed || this.gameOver) return;
-    // flip to falling state (it's already falling). We mark it to be placed when it collides.
-    // For this version, clicking/space triggers a small downward impulse so it falls faster
-    this.current.vy += 6;
-  }
-  update(dt){
-    if(this.gameOver) return;
-    // move current left/right if not placed
-    if(this.current && !this.current.placed){
-      if(this.keys.left) this.current.x -= 220*dt; // speed scaled by canvas
-      if(this.keys.right) this.current.x += 220*dt;
-      // bound
-      this.current.x = Math.max(this.current.w/2, Math.min(CANVAS_W - this.current.w/2, this.current.x));
-    }
-
-    // gravity
-    const GRAV = 1400; // px/s^2
-    const dtS = dt;
-
-    // update falling block
-    if(this.current && !this.current.placed){
-      this.current.vy += GRAV*dtS;
-      this.current.y += this.current.vy*dtS;
-      this.current.rotation += this.current.rotationSpeed;
-
-      // check collision with top block or ground
-      const top = this.blocks.length ? this.blocks[this.blocks.length-1] : null;
-      const landingY = top ? (top.y - (top.h/2) - (this.current.h/2)) : (CANVAS_H - this.current.h/2 - 10);
-      if(this.current.y >= landingY){
-        // snap to stack
-        this.current.y = landingY;
-        // evaluate placement success
-        const success = this.evaluatePlacement(top, this.current);
-        if(success){
-          this.current.placed = true; this.current.falling = false;
-          this.blocks.push(this.current);
-          this.score += 1;
-          scoreEl.textContent = this.score;
-          if(this.score > this.best){ this.best = this.score; localStorage.setItem('sentient_tower_best', String(this.best)); bestEl.textContent = this.best; }
-          // spawn next
-          this.spawnNext();
-        } else {
-          // failed -> start falling animation
-          this.gameOver = true;
-          // keep the falling block in place and give it rotational/angular velocity so it looks like it topples
-          this.current.rotationSpeed = (Math.random()>0.5?1:-1) * (0.03 + Math.random()*0.06);
-          this.current.vy = 50;
-        }
-      }
-    }
-
-    // If game over, animate falling blocks and toppling
-    if(this.gameOver){
-      // make current topple
-      if(this.current){
-        this.current.vy += GRAV*dtS;
-        this.current.y += this.current.vy*dtS;
-        this.current.rotation += this.current.rotationSpeed;
-        this.current.x += this.current.rotationSpeed * 60;
-      }
-      // drop stack slightly for effect
-      for(let i=0;i<this.blocks.length;i++){
-        const b = this.blocks[i];
-        b.y += 80*dtS; // gentle drop
-        b.rotation = Math.sin((Date.now()+i*200)/500) * 0.02; // wobble
-      }
-    }
-  }
-  evaluatePlacement(top, curr){
-    // If there's no top (ground), always success
-    if(!top) return true;
-    // compute overlap along x using axis-aligned bounding boxes (ignoring rotation for collision simplicity)
-    const leftA = curr.x - curr.w/2;
-    const rightA = curr.x + curr.w/2;
-    const leftB = top.x - top.w/2;
-    const rightB = top.x + top.w/2;
-    const overlap = Math.max(0, Math.min(rightA,rightB) - Math.max(leftA,leftB));
-    const overlapRatio = overlap / curr.w;
-
-    // center of mass relative to support
-    const com = curr.x;
-    const supported = (com > leftB + curr.w* -0.2) && (com < rightB - curr.w* -0.2); // a loose check
-
-    // compute difficulty threshold that tightens as score grows
-    const minOverlap = Math.max(0.22, 0.45 - Math.min(0.35, this.score*0.012)); // ratio of width that must overlap
-
-    // also if the rotation is too high (so block visually slanted), penalize
-    const rotPenalty = Math.abs(curr.rotation) > 0.6 ? 0.0 : 1.0;
-
-    const ok = (overlapRatio >= minOverlap) && rotPenalty>0;
-
-    // Extra: if the center of mass is outside top bounds significantly, fail
-    const comWithin = (com >= leftB- (curr.w*0.15)) && (com <= rightB + (curr.w*0.15));
-
-    return ok && comWithin;
+  // Also adjust falling pieces if any
+  if(STATE.fallingPieces){
+    for(let f of STATE.fallingPieces) f.y += deltaY;
   }
 }
 
-// === MAIN LOOP ===
-let last = performance.now();
-function loop(now){
-  const dt = Math.min(0.033, (now - last)/1000);
-  last = now;
-  if(game){
-    game.update(dt);
-    render();
+function endGame(){
+  STATE.running = false;
+  finalScore.textContent = STATE.score;
+  overlayGameOver.style.display = 'flex';
+  // small topple: turn moving into falling piece if exists
+  if(STATE.moving){
+    STATE.fallingPieces = STATE.fallingPieces || [];
+    STATE.fallingPieces.push({ x: STATE.moving.x, y: STATE.moving.y, w: STATE.moving.w, h: STATE.moving.h, vx: (Math.random()>0.5?120:-120), vy: -40, rot: (Math.random()-0.5)*1.2 });
+    STATE.moving = null;
   }
-  requestAnimationFrame(loop);
 }
 
-function render(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  // background grid / horizon
+// Render loop
+function draw(){
+  const rect = canvas.getBoundingClientRect();
+  const W = rect.width;
+  const H = rect.height;
+  ctx.clearRect(0,0,W,H);
+
+  // background gradient
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, 'rgba(8,12,30,0.9)');
+  g.addColorStop(1, 'rgba(0,8,14,0.9)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  // subtle horizon line
   ctx.fillStyle = 'rgba(255,255,255,0.02)';
-  // draw blocks
-  for(let i=0;i<game.blocks.length;i++){
-    game.blocks[i].draw(ctx);
+  ctx.fillRect(0,H-12,W,12);
+
+  // draw stacked blocks (bottom -> top)
+  for(let i=0;i<STATE.blocks.length;i++){
+    const b = STATE.blocks[i];
+    drawBlock(b);
   }
-  // draw current
-  if(game.current) game.current.draw(ctx);
 
-  // draw ground line
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  ctx.fillRect(0, canvas.height-8, canvas.width, 8);
+  // draw falling pieces
+  if(STATE.fallingPieces){
+    for(let i=STATE.fallingPieces.length-1;i>=0;i--){
+      const p = STATE.fallingPieces[i];
+      drawFallingPiece(p);
+    }
+  }
 
-  // if game over - overlay
-  if(game.gameOver){
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = '28px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over', canvas.width/2, canvas.height/2-10);
-    ctx.font = '18px Inter';
-    ctx.fillText('Score: '+game.score, canvas.width/2, canvas.height/2+22);
+  // draw moving block
+  if(STATE.moving){
+    drawBlock(STATE.moving, true);
   }
 }
 
-// === UI hooks ===
-startBtn.addEventListener('click', ()=>{
-  startBtn.disabled = true;
-  startBtn.textContent = 'Playing...';
-  if(!game) game = new Game();
-  else { game.reset(); }
+// draw a block with shadow and slight 3D effect
+function drawBlock(b, isMoving=false){
+  const ctxX = b.x; const ctxY = b.y; const w = b.w; const h = b.h;
+  // drop shadow
+  ctx.save();
+  ctx.fillStyle = SHADOW;
+  ctx.beginPath();
+  ctx.ellipse(ctxX, ctxY + h*0.4, w*0.52, h*0.28, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // block rect with gradient
+  ctx.save();
+  const grad = ctx.createLinearGradient(ctxX - w/2, ctxY - h/2, ctxX + w/2, ctxY + h/2);
+  grad.addColorStop(0, (isMoving ? '#ff6ab4' : '#ff5aa3'));
+  grad.addColorStop(1, (isMoving ? '#ff3f90' : '#e64a8f'));
+  ctx.fillStyle = grad;
+  // rounded rect
+  roundRect(ctx, ctxX - w/2, ctxY - h/2, w, h, Math.min(12, h*0.25));
+  ctx.fill();
+
+  // top highlight
+  ctx.globalAlpha = 0.12;
+  roundRect(ctx, ctxX - w/2 + 2, ctxY - h/2 + 2, w - 4, h/2 - 4, Math.min(10, h*0.2));
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  // thin border
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, ctxX - w/2, ctxY - h/2, w, h, Math.min(12, h*0.25));
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// simple rounded rect helper (path only)
+function roundRect(ctx, x, y, w, h, r){
+  const radius = r;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+}
+
+// draw falling trimmed piece (rotating, gravity)
+function drawFallingPiece(p){
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rot || 0);
+  const grad = ctx.createLinearGradient(-p.w/2, -p.h/2, p.w/2, p.h/2);
+  grad.addColorStop(0, PINK);
+  grad.addColorStop(1, PINK_DARK);
+  ctx.fillStyle = grad;
+  roundRect(ctx, -p.w/2, -p.h/2, p.w, p.h, Math.min(10, p.h*0.25));
+  ctx.fill();
+  ctx.restore();
+}
+
+// physics update loop
+function tick(now){
+  if(!STATE.running){
+    draw();
+    requestAnimationFrame(tick);
+    return;
+  }
+  const dt = Math.min(0.033, (now - STATE.lastTime)/1000);
+  STATE.lastTime = now;
+
+  const rect = canvas.getBoundingClientRect();
+  const W = rect.width;
+
+  // update moving block position (sliding left-right)
+  if(STATE.moving && STATE.moving.sliding){
+    const m = STATE.moving;
+    m.x += m.vx * dt;
+    // bounce at edges
+    const halfW = m.w / 2;
+    if(m.x - halfW < 6){ m.x = halfW + 6; m.vx *= -1; }
+    if(m.x + halfW > W - 6){ m.x = W - halfW - 6; m.vx *= -1; }
+    // allow keyboard nudge (small)
+    if(STATE.nudgeLeft) m.x -= 160 * dt;
+    if(STATE.nudgeRight) m.x += 160 * dt;
+  }
+
+  // update falling pieces physics
+  if(STATE.fallingPieces){
+    for(let i=STATE.fallingPieces.length-1;i>=0;i--){
+      const p = STATE.fallingPieces[i];
+      p.vy += 1200 * dt; // gravity
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.rot += (Math.random()-0.5) * 0.05;
+      // remove if off screen
+      if(p.y > rect.height + 200) STATE.fallingPieces.splice(i,1);
+    }
+  }
+
+  draw();
+  requestAnimationFrame(tick);
+}
+
+// Input handling
+window.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space'){ e.preventDefault(); if(!STATE.running){ startGame(); } else { stopBlock(); } }
+  if(e.code === 'ArrowLeft'){ STATE.nudgeLeft = true; }
+  if(e.code === 'ArrowRight'){ STATE.nudgeRight = true; }
 });
-restartBtn.addEventListener('click', ()=>{ if(game) game.reset(); else { game = new Game(); } startBtn.disabled=false; startBtn.textContent='Start Game'; scoreEl.textContent='0'; });
+window.addEventListener('keyup', (e)=>{
+  if(e.code === 'ArrowLeft'){ STATE.nudgeLeft = false; }
+  if(e.code === 'ArrowRight'){ STATE.nudgeRight = false; }
+});
 
-// preload then start loop
-preloadImages(IMAGE_COUNT).then(()=>{
-  // create initial game object
-  game = new Game();
-  requestAnimationFrame(loop);
-}).catch(()=>{ game = new Game(); requestAnimationFrame(loop); });
+canvas.addEventListener('click', ()=>{
+  if(!STATE.running){ startGame(); } else { stopBlock(); }
+});
+canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(!STATE.running){ startGame(); } else { stopBlock(); } }, {passive:false});
 
+// Buttons
+startBtn.addEventListener('click', startGame);
+retryBtn.addEventListener('click', ()=>{
+  overlayGameOver.style.display = 'none';
+  startGame();
+});
+homeBtn.addEventListener('click', ()=>{
+  overlayGameOver.style.display = 'none';
+  overlayStart.style.display = 'flex';
+});
+
+// initial setup: create base block visualization (no game running)
+(function initStaticBase(){
+  const cw = canvas.getBoundingClientRect().width;
+  const rect = canvas.getBoundingClientRect();
+  const initialW = Math.min(cw - 20, 220);
+  const baseH = 36;
+  const baseX = cw/2;
+  const baseY = rect.height - baseH/2 - 10;
+  STATE.blocks = [ makeBlock(baseX, baseY, initialW, baseH, PINK_DARK) ];
+  draw();
+})();
+
+// start the animation loop
+requestAnimationFrame((t)=>{ STATE.lastTime = t; requestAnimationFrame(tick); });
 </script>
 </body>
 </html>
