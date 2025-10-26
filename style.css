@@ -62,6 +62,22 @@ body, html {
   background: #e64a8f;
 }
 
+/* Start button */
+.primary-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #ff5aa3;
+  color: #111;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 12px;
+}
+.primary-btn:hover {
+  background: #e64a8f;
+}
+
 /* Tower box */
 .tower-box {
   width: 100%;
@@ -112,11 +128,7 @@ button#restart-btn:hover {
   .scoreboard {
     font-size: 14px;
   }
-  .mode-btn {
-    padding: 4px 10px;
-    font-size: 14px;
-  }
-  button#restart-btn {
+  .mode-btn, .primary-btn, button#restart-btn {
     font-size: 14px;
     padding: 6px 12px;
   }
