@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sentient Tower — Stacking Game</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7dd3fc}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071126 0%, #071420 60%);color:#e6eef6;display:flex;align-items:center;justify-content:center}
+    .wrap{width:100%;max-width:1100px;margin:24px;padding:18px;box-sizing:border-box}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.primary{background:var(--accent);color:#042033;border:none}
+    #gameCard{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:start}
+    #gameArea{background:linear-gradient(180deg,#072034 0%, #041226 100%);border-radius:8px;padding:8px;min-height:600px;position:relative;overflow:hidden}
+    canvas{display:block;width:100%;height:600px;border-radius:6px;background:linear-gradient(180deg, rgba(0,0,0,0.05), transparent)}
+    .sidebar{padding:8px}
+    .stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-bottom:10px}
+    .note{font-size:13px;color:#bcd7ea}
+    .nextPreview{height:140px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));overflow:hidden}
+    .nextPreview img{max-width:100%;max-height:100%;object-fit:contain}
+    footer{font-size:13px;color:#9fc7de;margin-top:10px}
+    @media(max-width:900px){#gameCard{grid-template-columns:1fr}canvas{height:480px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Sentient Tower — Stacking Game</h1>
+      <div class="controls">
+        <div class="note">Controls: ← → to move • Space / Click to drop</div>
+        <button id="startBtn" class="primary">Start Game</button>
+      </div>
+    </header>
+
+    <div id="gameCard">
+      <div id="gameArea">
+        <canvas id="canvas" width="800" height="600"></canvas>
+      </div>
+
+      <aside class="sidebar">
+        <div class="stat"><strong>Score:</strong> <span id="score">0</span></div>
+        <div class="stat"><strong>Best:</strong> <span id="best">0</span></div>
+        <div class="stat">
+          <div style="margin-bottom:8px"><strong>Next Image</strong></div>
+          <div class="nextPreview" id="nextPreview"><img id="nextImg" src="" alt="next"></div>
+        </div>
+        <div class="stat">
+          <div class="note">Place your 18 images in a folder named <code>/images</code> and name them <code>img1.jpg</code>...<code>img18.jpg</code> (png ok). You can change paths in the code.</div>
+        </div>
+        <div class="stat">
+          <button id="restartBtn">Restart</button>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      Tip: as the tower grows, blocks get slightly smaller and may rotate — stack carefully!
+    </footer>
+  </div>
+
+<script>
+// ============= CONFIG ==============
+const IMAGE_COUNT = 18; // you have 18 images (img1.jpg ... img18.jpg)
+const IMAGE_PATH = (i)=>`/images/img${i}.jpg`; // change if your folder/names differ
+const CANVAS_W = 800; const CANVAS_H = 600;
+// ====================================
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const nextImgEl = document.getElementById('nextImg');
+
+let images = [];
+let game;
+
+function preloadImages(count){
+  const promises = [];
+  for(let i=1;i<=count;i++){
+    const img = new Image();
+    img.src = IMAGE_PATH(i);
+    images.push(img);
+    promises.push(new Promise((res)=>{img.onload = ()=>res(); img.onerror = ()=>res();}));
+  }
+  return Promise.all(promises);
+}
+
+class Block{
+  constructor(opts){
+    this.img = opts.img;
+    this.w = opts.w;
+    this.h = opts.h;
+    this.x = opts.x; // center x
+    this.y = opts.y; // center y
+    this.vy = 0;
+    this.vx = 0;
+    this.rotation = opts.rotation || 0; // radians
+    this.rotationSpeed = opts.rotationSpeed || 0;
+    this.falling = true; // is it in falling state
+    this.placed = false; // placed on stack
+  }
+  draw(ctx){
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.drawImage(this.img, -this.w/2, -this.h/2, this.w, this.h);
+    ctx.restore();
+  }
+}
+
+class Game{
+  constructor(){
+    this.reset();
+    this.bind();
+  }
+  reset(){
+    this.blocks = [];
+    this.score = 0;
+    this.speedIncrease = 0;
+    this.spawnX = CANVAS_W/2;
+    this.current = null;
+    this.gameOver = false;
+    this.spawnNext();
+    this.best = parseInt(localStorage.getItem('sentient_tower_best')||'0',10);
+    bestEl.textContent = this.best;
+  }
+  bind(){
+    this.keys = {left:false,right:false};
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='ArrowLeft') this.keys.left = true;
+      if(e.key==='ArrowRight') this.keys.right = true;
+      if(e.key===' '){ e.preventDefault(); this.dropCurrent(); }
+    });
+    window.addEventListener('keyup', (e)=>{
+      if(e.key==='ArrowLeft') this.keys.left = false;
+      if(e.key==='ArrowRight') this.keys.right = false;
+    });
+    canvas.addEventListener('click', ()=>{ this.dropCurrent(); });
+  }
+  spawnNext(){
+    // pick random image
+    const idx = Math.floor(Math.random()*images.length);
+    const img = images[idx];
+    // scale slightly smaller as score increases
+    const scaleBase = 0.9 - Math.min(0.35, this.score*0.01);
+    const w = 220 * (scaleBase + Math.random()*0.2); // base width
+    const ar = img.naturalWidth && img.naturalHeight ? img.naturalHeight/img.naturalWidth : 1;
+    const h = w * (ar||0.66);
+    const rotation = (Math.random()-0.5) * 0.12 * (1 + this.score*0.03);
+    const rotationSpeed = (Math.random()-0.5) * 0.002;
+    // spawn near top center
+    this.current = new Block({img,w,h,x:CANVAS_W/2,y:60,rotation,rotationSpeed});
+    // preview
+    nextImgEl.src = img.src;
+  }
+  dropCurrent(){
+    if(!this.current || this.current.placed || this.gameOver) return;
+    // flip to falling state (it's already falling). We mark it to be placed when it collides.
+    // For this version, clicking/space triggers a small downward impulse so it falls faster
+    this.current.vy += 6;
+  }
+  update(dt){
+    if(this.gameOver) return;
+    // move current left/right if not placed
+    if(this.current && !this.current.placed){
+      if(this.keys.left) this.current.x -= 220*dt; // speed scaled by canvas
+      if(this.keys.right) this.current.x += 220*dt;
+      // bound
+      this.current.x = Math.max(this.current.w/2, Math.min(CANVAS_W - this.current.w/2, this.current.x));
+    }
+
+    // gravity
+    const GRAV = 1400; // px/s^2
+    const dtS = dt;
+
+    // update falling block
+    if(this.current && !this.current.placed){
+      this.current.vy += GRAV*dtS;
+      this.current.y += this.current.vy*dtS;
+      this.current.rotation += this.current.rotationSpeed;
+
+      // check collision with top block or ground
+      const top = this.blocks.length ? this.blocks[this.blocks.length-1] : null;
+      const landingY = top ? (top.y - (top.h/2) - (this.current.h/2)) : (CANVAS_H - this.current.h/2 - 10);
+      if(this.current.y >= landingY){
+        // snap to stack
+        this.current.y = landingY;
+        // evaluate placement success
+        const success = this.evaluatePlacement(top, this.current);
+        if(success){
+          this.current.placed = true; this.current.falling = false;
+          this.blocks.push(this.current);
+          this.score += 1;
+          scoreEl.textContent = this.score;
+          if(this.score > this.best){ this.best = this.score; localStorage.setItem('sentient_tower_best', String(this.best)); bestEl.textContent = this.best; }
+          // spawn next
+          this.spawnNext();
+        } else {
+          // failed -> start falling animation
+          this.gameOver = true;
+          // keep the falling block in place and give it rotational/angular velocity so it looks like it topples
+          this.current.rotationSpeed = (Math.random()>0.5?1:-1) * (0.03 + Math.random()*0.06);
+          this.current.vy = 50;
+        }
+      }
+    }
+
+    // If game over, animate falling blocks and toppling
+    if(this.gameOver){
+      // make current topple
+      if(this.current){
+        this.current.vy += GRAV*dtS;
+        this.current.y += this.current.vy*dtS;
+        this.current.rotation += this.current.rotationSpeed;
+        this.current.x += this.current.rotationSpeed * 60;
+      }
+      // drop stack slightly for effect
+      for(let i=0;i<this.blocks.length;i++){
+        const b = this.blocks[i];
+        b.y += 80*dtS; // gentle drop
+        b.rotation = Math.sin((Date.now()+i*200)/500) * 0.02; // wobble
+      }
+    }
+  }
+  evaluatePlacement(top, curr){
+    // If there's no top (ground), always success
+    if(!top) return true;
+    // compute overlap along x using axis-aligned bounding boxes (ignoring rotation for collision simplicity)
+    const leftA = curr.x - curr.w/2;
+    const rightA = curr.x + curr.w/2;
+    const leftB = top.x - top.w/2;
+    const rightB = top.x + top.w/2;
+    const overlap = Math.max(0, Math.min(rightA,rightB) - Math.max(leftA,leftB));
+    const overlapRatio = overlap / curr.w;
+
+    // center of mass relative to support
+    const com = curr.x;
+    const supported = (com > leftB + curr.w* -0.2) && (com < rightB - curr.w* -0.2); // a loose check
+
+    // compute difficulty threshold that tightens as score grows
+    const minOverlap = Math.max(0.22, 0.45 - Math.min(0.35, this.score*0.012)); // ratio of width that must overlap
+
+    // also if the rotation is too high (so block visually slanted), penalize
+    const rotPenalty = Math.abs(curr.rotation) > 0.6 ? 0.0 : 1.0;
+
+    const ok = (overlapRatio >= minOverlap) && rotPenalty>0;
+
+    // Extra: if the center of mass is outside top bounds significantly, fail
+    const comWithin = (com >= leftB- (curr.w*0.15)) && (com <= rightB + (curr.w*0.15));
+
+    return ok && comWithin;
+  }
+}
+
+// === MAIN LOOP ===
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.033, (now - last)/1000);
+  last = now;
+  if(game){
+    game.update(dt);
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // background grid / horizon
+  ctx.fillStyle = 'rgba(255,255,255,0.02)';
+  // draw blocks
+  for(let i=0;i<game.blocks.length;i++){
+    game.blocks[i].draw(ctx);
+  }
+  // draw current
+  if(game.current) game.current.draw(ctx);
+
+  // draw ground line
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fillRect(0, canvas.height-8, canvas.width, 8);
+
+  // if game over - overlay
+  if(game.gameOver){
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '28px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width/2, canvas.height/2-10);
+    ctx.font = '18px Inter';
+    ctx.fillText('Score: '+game.score, canvas.width/2, canvas.height/2+22);
+  }
+}
+
+// === UI hooks ===
+startBtn.addEventListener('click', ()=>{
+  startBtn.disabled = true;
+  startBtn.textContent = 'Playing...';
+  if(!game) game = new Game();
+  else { game.reset(); }
+});
+restartBtn.addEventListener('click', ()=>{ if(game) game.reset(); else { game = new Game(); } startBtn.disabled=false; startBtn.textContent='Start Game'; scoreEl.textContent='0'; });
+
+// preload then start loop
+preloadImages(IMAGE_COUNT).then(()=>{
+  // create initial game object
+  game = new Game();
+  requestAnimationFrame(loop);
+}).catch(()=>{ game = new Game(); requestAnimationFrame(loop); });
+
+</script>
+</body>
+</html>
