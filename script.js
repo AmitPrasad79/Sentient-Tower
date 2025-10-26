@@ -4,22 +4,22 @@ const ctx = canvas.getContext("2d");
 const currentScoreEl = document.getElementById("current-score");
 const bestScoreEl = document.getElementById("best-score");
 const restartBtn = document.getElementById("restart-btn");
+const startBtn = document.getElementById("start-btn");
 const modeButtons = document.querySelectorAll(".mode-btn");
 
 let canvasWidth, canvasHeight;
-let scale = 1;
 
 // Game state
 let STATE = {
-  blocks: [],       // stacked blocks
-  moving: null,     // current sliding block
-  falling: [],      // falling trimmed blocks
+  blocks: [],
+  moving: null,
+  falling: [],
   score: 0,
   best: parseInt(localStorage.getItem("sentient_tower_best") || "0", 10),
   running: false,
   mode: "easy",
-  speed: 150,       // px/sec base speed
-  tolerance: 15,    // px tolerance for cutting
+  speed: 150,
+  tolerance: 15,
   blockHeight: 36,
   minWidth: 20
 };
@@ -74,7 +74,7 @@ function startGame() {
 function spawnMovingBlock() {
   const top = STATE.blocks[STATE.blocks.length - 1];
   const block = {
-    x: 0, 
+    x: 0,
     y: top.y - STATE.blockHeight - 6,
     w: top.w,
     h: STATE.blockHeight,
@@ -164,9 +164,7 @@ function draw() {
     drawBlock(f, true);
   }
 
-  if (STATE.moving) {
-    drawBlock(STATE.moving);
-  }
+  if (STATE.moving) drawBlock(STATE.moving);
   requestAnimationFrame(draw);
 }
 
@@ -188,7 +186,7 @@ function update(dt) {
       STATE.moving.vx *= -1;
     }
   }
-  setTimeout(() => update(0.016), 16); // roughly 60fps
+  setTimeout(() => update(0.016), 16);
 }
 
 // Event listeners
@@ -197,10 +195,13 @@ window.addEventListener("keydown", (e) => {
 });
 canvas.addEventListener("click", stopBlock);
 restartBtn.addEventListener("click", startGame);
+startBtn.addEventListener("click", () => {
+  startGame();
+  startBtn.classList.add("hidden");
+});
 modeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     STATE.mode = btn.dataset.mode;
-    startGame();
   });
 });
 
