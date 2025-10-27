@@ -1,4 +1,15 @@
 // SENTIENT TOWER - FIXED SCRIPT
+const canvas = document.getElementById("towerCanvas");
+const ctx = canvas.getContext("2d");
+
+// ✅ Always match the canvas size to the visible box
+function resizeCanvas() {
+  const box = document.querySelector(".tower-box");
+  canvas.width = box.clientWidth;
+  canvas.height = box.clientHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
 const menuScreen = document.getElementById("menu");
 const gameScreen = document.getElementById("game");
