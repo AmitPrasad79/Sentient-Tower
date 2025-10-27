@@ -110,16 +110,20 @@ main {
   position: relative;
   overflow: hidden;
   z-index: 5;
+
+  /* ✅ Center the canvas perfectly inside */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* --- FIX CANVAS VISIBILITY --- */
 #towerCanvas {
   width: 100%;
   height: 100%;
   display: block;
-  background: radial-gradient(circle at center, rgba(255, 102, 204, 0.1), rgba(0, 0, 0, 0.8));
   border-radius: 14px;
-  z-index: 5;
+  background: radial-gradient(circle at center, rgba(255, 102, 204, 0.15), rgba(0, 0, 0, 0.9));
+  z-index: 10;
   position: relative;
 }
 
