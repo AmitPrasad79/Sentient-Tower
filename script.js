@@ -1,4 +1,4 @@
-// SENTIENT TOWER - script.js
+// SENTIENT TOWER - FIXED SCRIPT
 
 const menuScreen = document.getElementById("menu");
 const gameScreen = document.getElementById("game");
@@ -17,14 +17,15 @@ let blocks = [];
 let currentBlock = null;
 let score = 0;
 let isRunning = false;
+let animationId = null;
 
 // MODE SELECTION
 modeBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     modeBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    gameSpeed = btn.dataset.speed;
-    startBtn.disabled = false; // enable start button
+    gameSpeed = btn.dataset.speed; // "slow", "medium", "fast"
+    startBtn.disabled = false;
   });
 });
 
@@ -45,30 +46,36 @@ function startGame() {
   towerCanvas = document.getElementById("towerCanvas");
   ctx = towerCanvas.getContext("2d");
 
-  const rect = towerCanvas.getBoundingClientRect();
-  towerCanvas.width = rect.width * window.devicePixelRatio;
-  towerCanvas.height = rect.height * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
+  // Set fixed logical size
+  towerCanvas.width = towerCanvas.clientWidth;
+  towerCanvas.height = towerCanvas.clientHeight;
 
   blocks = [];
   score = 0;
   isRunning = true;
   winPopup.classList.add("hidden");
+  scoreDisplay.textContent = "Score: 0";
 
-  // First base block
+  // Base block
   const baseWidth = 200;
   const baseHeight = 20;
-  const baseY = towerCanvas.height - baseHeight;
+  const baseY = towerCanvas.height - baseHeight - 10;
   blocks.push({ x: (towerCanvas.width - baseWidth) / 2, y: baseY, w: baseWidth, h: baseHeight });
 
+  // Attach click listener only once canvas exists
+  towerCanvas.onclick = placeBlock;
+
   spawnNewBlock();
-  requestAnimationFrame(update);
+  update();
 }
 
 function spawnNewBlock() {
   if (!isRunning) return;
-  const speed = gameSpeed === "easy" ? 2 : gameSpeed === "medium" ? 3.5 : 5;
+  const speed =
+    gameSpeed === "slow" ? 2 :
+    gameSpeed === "medium" ? 3.5 :
+    5;
+
   const width = blocks[blocks.length - 1].w;
   const x = Math.random() < 0.5 ? 0 : towerCanvas.width - width;
   const y = 0;
@@ -77,31 +84,22 @@ function spawnNewBlock() {
 
 function update() {
   if (!isRunning) return;
-
   ctx.clearRect(0, 0, towerCanvas.width, towerCanvas.height);
 
   // Draw existing blocks
   ctx.fillStyle = "#ff66cc";
-  blocks.forEach(b => {
-    ctx.fillRect(b.x, b.y, b.w, b.h);
-  });
+  blocks.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
 
-  // Move current block
+  // Move and draw current block
   if (currentBlock) {
     currentBlock.x += currentBlock.speed * currentBlock.dir;
-    if (currentBlock.x <= 0 || currentBlock.x + currentBlock.w >= towerCanvas.width) {
+    if (currentBlock.x <= 0 || currentBlock.x + currentBlock.w >= towerCanvas.width)
       currentBlock.dir *= -1;
-    }
     ctx.fillRect(currentBlock.x, currentBlock.y, currentBlock.w, currentBlock.h);
   }
 
-  requestAnimationFrame(update);
+  animationId = requestAnimationFrame(update);
 }
-
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" || e.code === "ArrowDown") placeBlock();
-});
-towerCanvas.addEventListener("click", placeBlock);
 
 function placeBlock() {
   if (!isRunning || !currentBlock) return;
@@ -109,18 +107,10 @@ function placeBlock() {
   const prev = blocks[blocks.length - 1];
   const diff = currentBlock.x - prev.x;
 
-  // If block too far off, game over
-  if (Math.abs(diff) > prev.w) {
-    gameOver();
-    return;
-  }
+  if (Math.abs(diff) > prev.w) return gameOver();
 
-  // Trim block
   const overlap = prev.w - Math.abs(diff);
-  if (overlap < 10) {
-    gameOver();
-    return;
-  }
+  if (overlap < 10) return gameOver();
 
   const newBlock = {
     x: diff >= 0 ? currentBlock.x : prev.x,
@@ -128,6 +118,7 @@ function placeBlock() {
     w: overlap,
     h: 20
   };
+
   blocks.push(newBlock);
   score++;
   scoreDisplay.textContent = `Score: ${score}`;
@@ -137,6 +128,7 @@ function placeBlock() {
 
 function gameOver() {
   isRunning = false;
+  cancelAnimationFrame(animationId);
   winPopup.classList.remove("hidden");
   document.getElementById("win-text").innerText = `Your Score: ${score}`;
 }
@@ -144,10 +136,13 @@ function gameOver() {
 function restartGame() {
   gameScreen.classList.remove("hidden");
   menuScreen.classList.add("hidden");
+  cancelAnimationFrame(animationId);
   startGame();
 }
 
 function backToMenu() {
+  isRunning = false;
+  cancelAnimationFrame(animationId);
   gameScreen.classList.add("hidden");
   menuScreen.classList.add("active");
   startBtn.disabled = true;
