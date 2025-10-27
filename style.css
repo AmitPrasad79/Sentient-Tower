@@ -244,3 +244,26 @@ main {
   z-index: 10;
 }
 
+/* --- FINAL FIX FOR UNCLICKABLE BUTTONS --- */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #0a0013 20%, #000 100%);
+  pointer-events: none; /* 👈 prevents blocking any button clicks */
+  z-index: -2;           /* 👈 sends it completely behind everything */
+}
+
+/* Ensure all game UI is clickable */
+.game-container,
+#app,
+.screen,
+button,
+a {
+  position: relative;
+  z-index: 10;
+}
+
+
