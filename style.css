@@ -205,3 +205,15 @@ main {
 #footer a:hover {
   text-decoration: underline;
 }
+
+.game-container {
+  transform: scale(1.2);
+}
+
+.mode-row {
+  margin: 20px 0;
+}
+
+.mode-btn {
+  cursor: pointer;
+}
