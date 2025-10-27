@@ -1,225 +1,98 @@
-const canvas = document.getElementById("towerCanvas");
-const ctx = canvas.getContext("2d");
+document.addEventListener("DOMContentLoaded", () => {
+  const modeBtns = document.querySelectorAll(".mode-btn");
+  const startBtn = document.getElementById("start-btn");
+  const menu = document.getElementById("menu");
+  const game = document.getElementById("game");
+  const winPopup = document.getElementById("win");
+  const winMain = document.getElementById("win-main");
+  const winRestart = document.getElementById("win-restart");
+  const menuBtn = document.getElementById("menu-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const movesText = document.getElementById("moves");
+  const puzzleBox = document.getElementById("puzzle");
+  const previewImg = document.getElementById("preview-img");
+  const winImg = document.getElementById("win-img");
 
-canvas.width = 360;
-canvas.height = 480;
+  let selectedSize = null;
+  let moves = 0;
 
-let tower = [];
-let currentBlock = null;
-let gameRunning = false;
-let moveDirection = 1;
-let blockSpeed = 3;
-let blockWidth = 120;
-let blockHeight = 18;
-let score = 0;
-let bestScore = localStorage.getItem("bestTowerScore") || 0;
-
-const scoreText = document.getElementById("score");
-const bestText = document.getElementById("best");
-const startBtn = document.getElementById("start-btn");
-const resetBtn = document.getElementById("reset-btn");
-const menuBtn = document.getElementById("menu-btn");
-const modeBtns = document.querySelectorAll(".mode-btn");
-
-let gameMode = "medium";
-
-// =====================
-//  MODE SELECTION
-// =====================
-modeBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    modeBtns.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    gameMode = btn.dataset.mode;
-    startBtn.disabled = false;
+  // Choose difficulty
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      modeBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedSize = parseInt(btn.getAttribute("data-size"));
+      startBtn.disabled = false;
+    });
   });
-});
 
-// =====================
-//  START GAME
-// =====================
-startBtn.addEventListener("click", () => {
-  resetGame();
-  startGame();
-  document.getElementById("menu").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-});
+  // Start Game
+  startBtn.addEventListener("click", () => {
+    if (!selectedSize) return;
 
-resetBtn.addEventListener("click", () => restartGame());
-menuBtn.addEventListener("click", () => backToMenu());
-
-function backToMenu() {
-  resetGame();
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("menu").classList.add("active");
-}
-
-// =====================
-//  GAME LOGIC
-// =====================
-function startGame() {
-  gameRunning = true;
-  tower = [];
-
-  // Set speed & width based on mode
-  if (gameMode === "easy") {
-    blockWidth = 140;
-    blockSpeed = 2.4;
-  } else if (gameMode === "medium") {
-    blockWidth = 120;
-    blockSpeed = 3;
-  } else {
-    blockWidth = 100;
-    blockSpeed = 3.6;
-  }
-
-  score = 0;
-  updateScore();
-  addBaseBlock();
-  addMovingBlock();
-  requestAnimationFrame(update);
-}
-
-function resetGame() {
-  gameRunning = false;
-  tower = [];
-  currentBlock = null;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function restartGame() {
-  resetGame();
-  startGame();
-}
-
-// =====================
-//  BLOCK SYSTEM
-// =====================
-function addBaseBlock() {
-  const baseY = canvas.height - blockHeight;
-  tower.push({
-    x: canvas.width / 2 - blockWidth / 2,
-    y: baseY,
-    width: blockWidth,
-    color: getPinkShade()
+    menu.classList.add("hidden");
+    game.classList.remove("hidden");
+    generateTower(selectedSize);
   });
-}
 
-function addMovingBlock() {
-  const y = tower[tower.length - 1].y - blockHeight;
-  const startX = Math.random() > 0.5 ? -blockWidth : canvas.width;
-  currentBlock = {
-    x: startX,
-    y: y,
-    width: blockWidth,
-    color: getPinkShade()
-  };
-  moveDirection = startX < 0 ? 1 : -1;
-}
+  // Reset
+  resetBtn.addEventListener("click", () => {
+    moves = 0;
+    movesText.textContent = "Moves: 0";
+    generateTower(selectedSize);
+  });
 
-// =====================
-//  UPDATE LOOP
-// =====================
-function update() {
-  if (!gameRunning) return;
+  // Menu Button
+  menuBtn.addEventListener("click", () => {
+    game.classList.add("hidden");
+    menu.classList.remove("hidden");
+    startBtn.disabled = true;
+    modeBtns.forEach((b) => b.classList.remove("active"));
+  });
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Win actions
+  winMain.addEventListener("click", () => {
+    winPopup.classList.add("hidden");
+    game.classList.add("hidden");
+    menu.classList.remove("hidden");
+    startBtn.disabled = true;
+  });
 
-  // Draw tower
-  tower.forEach(b => drawBlock(b.x, b.y, b.width, b.color));
+  winRestart.addEventListener("click", () => {
+    winPopup.classList.add("hidden");
+    generateTower(selectedSize);
+  });
 
-  // Move current block
-  currentBlock.x += blockSpeed * moveDirection;
-  if (currentBlock.x <= -currentBlock.width || currentBlock.x >= canvas.width)
-    moveDirection *= -1;
+  function generateTower(size) {
+    puzzleBox.innerHTML = "";
+    moves = 0;
+    movesText.textContent = "Moves: 0";
 
-  drawBlock(currentBlock.x, currentBlock.y, currentBlock.width, currentBlock.color);
-  requestAnimationFrame(update);
-}
+    // Simple Tower game logic (like Hanoi-style blocks)
+    const totalBlocks = size * 3;
+    const blocks = [];
 
-// =====================
-//  CLICK TO DROP BLOCK
-// =====================
-canvas.addEventListener("click", placeBlock);
-document.body.addEventListener("keydown", e => {
-  if (e.code === "Space") placeBlock();
-});
+    for (let i = totalBlocks; i > 0; i--) {
+      const block = document.createElement("div");
+      block.className = "tower-block";
+      block.style.width = `${40 + i * 10}px`;
+      block.style.background = `hsl(${i * 20}, 70%, 60%)`;
+      blocks.push(block);
+      puzzleBox.appendChild(block);
+    }
 
-function placeBlock() {
-  if (!gameRunning || !currentBlock) return;
-
-  const prev = tower[tower.length - 1];
-  const diff = currentBlock.x - prev.x;
-
-  // If misaligned too much -> game over
-  if (Math.abs(diff) >= currentBlock.width) {
-    gameOver();
-    return;
+    // Clicking logic (dummy version for now)
+    blocks.forEach((block) => {
+      block.addEventListener("click", () => {
+        moves++;
+        movesText.textContent = `Moves: ${moves}`;
+        if (moves >= size * 5) showWin();
+      });
+    });
   }
 
-  // Cut the block
-  const overlap = currentBlock.width - Math.abs(diff);
-  const newWidth = overlap;
-  currentBlock.width = newWidth;
-
-  if (diff > 0) currentBlock.x += diff;
-  if (diff < 0) currentBlock.x -= Math.abs(diff);
-
-  tower.push({ ...currentBlock });
-  score++;
-  updateScore();
-
-  // Prepare next block
-  addMovingBlock();
-}
-
-// =====================
-//  DRAWING
-// =====================
-function drawBlock(x, y, width, color) {
-  const gradient = ctx.createLinearGradient(x, y, x, y + blockHeight);
-  gradient.addColorStop(0, color);
-  gradient.addColorStop(1, "#ff1a8c");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(x, y, width, blockHeight);
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = color;
-}
-
-// =====================
-//  HELPERS
-// =====================
-function getPinkShade() {
-  const shades = ["#ff66cc", "#ff99cc", "#ff4db8", "#ff80d5"];
-  return shades[Math.floor(Math.random() * shades.length)];
-}
-
-function updateScore() {
-  scoreText.textContent = `Score: ${score}`;
-  bestText.textContent = `Best: ${bestScore}`;
-}
-
-function gameOver() {
-  gameRunning = false;
-  if (score > bestScore) {
-    bestScore = score;
-    localStorage.setItem("bestTowerScore", bestScore);
+  function showWin() {
+    winImg.src = previewImg.src || "";
+    winPopup.classList.remove("hidden");
   }
-
-  const popup = document.getElementById("win");
-  const text = document.getElementById("win-text");
-  text.textContent = `You stacked ${score} blocks!`;
-  popup.classList.remove("hidden");
-}
-
-// =====================
-//  POPUP HANDLERS
-// =====================
-document.getElementById("win-restart").addEventListener("click", () => {
-  document.getElementById("win").classList.add("hidden");
-  restartGame();
-});
-document.getElementById("win-main").addEventListener("click", () => {
-  document.getElementById("win").classList.add("hidden");
-  backToMenu();
 });
