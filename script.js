@@ -46,9 +46,13 @@ function startGame() {
   towerCanvas = document.getElementById("towerCanvas");
   ctx = towerCanvas.getContext("2d");
 
-  // Set fixed logical size
-  towerCanvas.width = towerCanvas.clientWidth;
-  towerCanvas.height = towerCanvas.clientHeight;
+  // FIX: set logical resolution same as CSS size (no pixel ratio scaling)
+  const rect = towerCanvas.getBoundingClientRect();
+  towerCanvas.width = rect.width;
+  towerCanvas.height = rect.height;
+
+  // now game area fills full inner rectangle visually
+  ctx.imageSmoothingEnabled = false;
 
   blocks = [];
   score = 0;
@@ -57,12 +61,12 @@ function startGame() {
   scoreDisplay.textContent = "Score: 0";
 
   // Base block
-  const baseWidth = 200;
+  const baseWidth = towerCanvas.width * 0.6;
   const baseHeight = 20;
   const baseY = towerCanvas.height - baseHeight - 10;
   blocks.push({ x: (towerCanvas.width - baseWidth) / 2, y: baseY, w: baseWidth, h: baseHeight });
 
-  // Attach click listener only once canvas exists
+  // Attach click only when game is active
   towerCanvas.onclick = placeBlock;
 
   spawnNewBlock();
