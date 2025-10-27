@@ -1,98 +1,191 @@
+// Sentient Tower Game
 document.addEventListener("DOMContentLoaded", () => {
-  const modeBtns = document.querySelectorAll(".mode-btn");
+  const menuScreen = document.getElementById("menu");
+  const gameScreen = document.getElementById("game");
   const startBtn = document.getElementById("start-btn");
-  const menu = document.getElementById("menu");
-  const game = document.getElementById("game");
+  const modeBtns = document.querySelectorAll(".mode-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const menuBtn = document.getElementById("menu-btn");
+  const scoreDisplay = document.getElementById("score");
   const winPopup = document.getElementById("win");
   const winMain = document.getElementById("win-main");
   const winRestart = document.getElementById("win-restart");
-  const menuBtn = document.getElementById("menu-btn");
-  const resetBtn = document.getElementById("reset-btn");
-  const movesText = document.getElementById("moves");
-  const puzzleBox = document.getElementById("puzzle");
-  const previewImg = document.getElementById("preview-img");
-  const winImg = document.getElementById("win-img");
 
-  let selectedSize = null;
-  let moves = 0;
+  const canvas = document.getElementById("towerCanvas");
+  const ctx = canvas.getContext("2d");
 
-  // Choose difficulty
-  modeBtns.forEach((btn) => {
+  let currentMode = null;
+  let gameActive = false;
+  let blocks = [];
+  let currentBlock = null;
+  let score = 0;
+  let speed = 2;
+  let direction = 1;
+  let animationFrame;
+
+  // ✅ Handle mode selection
+  modeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-      modeBtns.forEach((b) => b.classList.remove("active"));
+      modeBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      selectedSize = parseInt(btn.getAttribute("data-size"));
+      currentMode = btn.dataset.speed;
+
+      // enable Start button
       startBtn.disabled = false;
+      startBtn.classList.add("primary");
     });
   });
 
-  // Start Game
+  // ✅ Handle Start Game
   startBtn.addEventListener("click", () => {
-    if (!selectedSize) return;
-
-    menu.classList.add("hidden");
-    game.classList.remove("hidden");
-    generateTower(selectedSize);
+    if (!currentMode) return;
+    menuScreen.classList.remove("active");
+    menuScreen.classList.add("hidden");
+    gameScreen.classList.remove("hidden");
+    startGame();
   });
 
-  // Reset
-  resetBtn.addEventListener("click", () => {
-    moves = 0;
-    movesText.textContent = "Moves: 0";
-    generateTower(selectedSize);
-  });
+  // ✅ Handle Reset
+  resetBtn.addEventListener("click", () => startGame());
 
-  // Menu Button
+  // ✅ Handle Menu
   menuBtn.addEventListener("click", () => {
-    game.classList.add("hidden");
-    menu.classList.remove("hidden");
+    cancelAnimationFrame(animationFrame);
+    gameScreen.classList.add("hidden");
+    menuScreen.classList.add("active");
     startBtn.disabled = true;
-    modeBtns.forEach((b) => b.classList.remove("active"));
+    startBtn.classList.remove("primary");
+    score = 0;
+    scoreDisplay.textContent = "Score: 0";
   });
 
-  // Win actions
+  // ✅ Handle Win Popup buttons
   winMain.addEventListener("click", () => {
     winPopup.classList.add("hidden");
-    game.classList.add("hidden");
-    menu.classList.remove("hidden");
-    startBtn.disabled = true;
+    menuScreen.classList.add("active");
   });
-
   winRestart.addEventListener("click", () => {
     winPopup.classList.add("hidden");
-    generateTower(selectedSize);
+    startGame();
   });
 
-  function generateTower(size) {
-    puzzleBox.innerHTML = "";
-    moves = 0;
-    movesText.textContent = "Moves: 0";
+  // 🧱 Start / Reset Game
+  function startGame() {
+    cancelAnimationFrame(animationFrame);
+    resizeCanvas();
 
-    // Simple Tower game logic (like Hanoi-style blocks)
-    const totalBlocks = size * 3;
-    const blocks = [];
+    // mode speed setup
+    if (currentMode === "slow") speed = 2;
+    else if (currentMode === "medium") speed = 3.5;
+    else if (currentMode === "fast") speed = 5;
 
-    for (let i = totalBlocks; i > 0; i--) {
-      const block = document.createElement("div");
-      block.className = "tower-block";
-      block.style.width = `${40 + i * 10}px`;
-      block.style.background = `hsl(${i * 20}, 70%, 60%)`;
-      blocks.push(block);
-      puzzleBox.appendChild(block);
+    blocks = [];
+    score = 0;
+    direction = 1;
+    scoreDisplay.textContent = "Score: 0";
+    gameActive = true;
+
+    // create first block (base)
+    const baseHeight = 30;
+    const baseWidth = canvas.width * 0.6;
+    const baseY = canvas.height - baseHeight;
+    blocks.push({
+      x: (canvas.width - baseWidth) / 2,
+      y: baseY,
+      width: baseWidth,
+      height: baseHeight,
+      color: "#ff66cc"
+    });
+
+    // first falling block
+    addNewBlock();
+    animate();
+  }
+
+  // 🧩 Resize canvas to container
+  function resizeCanvas() {
+    const box = document.getElementById("tower-box");
+    canvas.width = box.offsetWidth;
+    canvas.height = box.offsetHeight;
+  }
+
+  // 🧱 Add new moving block
+  function addNewBlock() {
+    const last = blocks[blocks.length - 1];
+    const newWidth = last ? last.width : canvas.width * 0.6;
+    const blockHeight = 30;
+
+    blocks.push({
+      x: 0,
+      y: last ? last.y - blockHeight : canvas.height - blockHeight,
+      width: newWidth,
+      height: blockHeight,
+      color: "#ff66cc"
+    });
+
+    currentBlock = blocks[blocks.length - 1];
+    direction = 1;
+  }
+
+  // 🖱️ Player action (click/space/arrow)
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space" || e.code === "ArrowUp") placeBlock();
+  });
+  canvas.addEventListener("click", placeBlock);
+
+  // 🧩 Place current block
+  function placeBlock() {
+    if (!gameActive || !currentBlock) return;
+    const last = blocks[blocks.length - 2];
+    if (!last) return;
+
+    const diff = currentBlock.x - last.x;
+    const overlap = last.width - Math.abs(diff);
+
+    if (overlap > 5) {
+      const newWidth = overlap;
+      currentBlock.width = newWidth;
+      if (diff > 0) currentBlock.x = last.x + (last.width - newWidth);
+      else currentBlock.x = last.x;
+      score++;
+      scoreDisplay.textContent = `Score: ${score}`;
+      addNewBlock();
+    } else {
+      gameOver();
     }
+  }
 
-    // Clicking logic (dummy version for now)
-    blocks.forEach((block) => {
-      block.addEventListener("click", () => {
-        moves++;
-        movesText.textContent = `Moves: ${moves}`;
-        if (moves >= size * 5) showWin();
-      });
+  // 🧱 Draw everything
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    blocks.forEach(b => {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.width, b.height);
     });
   }
 
-  function showWin() {
-    winImg.src = previewImg.src || "";
-    winPopup.classList.remove("hidden");
+  // 🎬 Animate falling block
+  function animate() {
+    if (!gameActive) return;
+    const moving = blocks[blocks.length - 1];
+    const last = blocks[blocks.length - 2];
+    if (moving && last) {
+      moving.x += speed * direction;
+      if (moving.x + moving.width > canvas.width || moving.x < 0)
+        direction *= -1;
+    }
+
+    draw();
+    animationFrame = requestAnimationFrame(animate);
   }
+
+  // ❌ Game Over
+  function gameOver() {
+    gameActive = false;
+    cancelAnimationFrame(animationFrame);
+    winPopup.classList.remove("hidden");
+    document.getElementById("win-text").textContent = `Final Score: ${score}`;
+  }
+
+  window.addEventListener("resize", resizeCanvas);
 });
