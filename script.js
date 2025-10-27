@@ -45,8 +45,11 @@ function startGame() {
   towerCanvas = document.getElementById("towerCanvas");
   ctx = towerCanvas.getContext("2d");
 
-  towerCanvas.width = towerCanvas.offsetWidth;
-  towerCanvas.height = towerCanvas.offsetHeight;
+  const rect = towerCanvas.getBoundingClientRect();
+  towerCanvas.width = rect.width * window.devicePixelRatio;
+  towerCanvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
 
   blocks = [];
   score = 0;
