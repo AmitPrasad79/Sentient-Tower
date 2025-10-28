@@ -376,3 +376,8 @@ a {
   pointer-events: none;
 }
 
+#bgCanvas {
+  pointer-events: none; /* background can't block clicks */
+}
+
+
