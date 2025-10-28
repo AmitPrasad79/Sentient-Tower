@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Draw countdown text
   function drawCountdown(n) {
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#ff66cc";
+    ctx.fillStyle = "##ff4db8";
     ctx.font = `${H / 3}px 'Poppins', sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
       w: last.w,
       h: blockHeight,
       dir: 1,
-      color: "#ff66cc"
+      color: "##ff4db8"
     };
   }
 
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       y: moving.y,
       w: overlap,
       h: blockHeight,
-      color: "#ff66cc"
+      color: "#ff4db8"
     };
 
     tower.push(newBlock);
