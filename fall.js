@@ -1,5 +1,15 @@
+// 🌸 Safe fall.js for Sentient Tower
 const bgCanvas = document.getElementById("bgCanvas");
 const ctx = bgCanvas.getContext("2d");
+
+// Always push background fully behind all content
+bgCanvas.style.position = "fixed";
+bgCanvas.style.top = "0";
+bgCanvas.style.left = "0";
+bgCanvas.style.width = "100%";
+bgCanvas.style.height = "100%";
+bgCanvas.style.zIndex = "-2";          // 👈 ensures it's behind everything
+bgCanvas.style.pointerEvents = "none"; // 👈 so it never blocks clicks
 
 function resizeBg() {
   bgCanvas.width = window.innerWidth;
@@ -9,14 +19,15 @@ window.addEventListener("resize", resizeBg);
 resizeBg();
 
 const img = new Image();
-img.src = "./images/sentient.png"; 
+img.src = "./images/sentient.png";
+
 let balls = [];
 
 function createBall() {
   balls.push({
     x: Math.random() * bgCanvas.width,
     y: -50,
-    size: Math.random() * 40 + 25, 
+    size: Math.random() * 40 + 25,
     speed: Math.random() * 1.2 + 0.3,
     rotation: Math.random() * 360,
     rotationSpeed: Math.random() * 0.6 - 0.3,
