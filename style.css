@@ -380,4 +380,17 @@ a {
   pointer-events: none; /* background can't block clicks */
 }
 
+#bgCanvas {
+  pointer-events: none !important;
+}
+
+#menu {
+  position: relative;
+  z-index: 10;
+}
+
+button {
+  position: relative;
+  z-index: 11;
+}
 
