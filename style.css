@@ -14,6 +14,35 @@ body {
   overflow: hidden;
 }
 
+/* Make background canvas stay behind everything */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none; /* so clicks go through it */
+}
+
+/* Keep game UI above background */
+.game-container,
+#app,
+.screen {
+  position: relative;
+  z-index: 10;
+}
+
+/* Hidden and active control visibility */
+.hidden {
+  display: none;
+}
+
+.active {
+  display: block;
+}
+
+
 main {
   width: 94%;
   max-width: 720px;
