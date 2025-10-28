@@ -281,4 +281,29 @@ a {
   z-index: 10;
 }
 
+/* --- FINAL FIX FOR CLICKABLE UI --- */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;          /* 👈 ensures canvas stays completely behind */
+  pointer-events: none; /* 👈 allows clicks to pass through */
+}
+
+body, html {
+  position: relative;
+  z-index: 0;
+}
+
+.game-container,
+#app,
+.screen,
+button,
+a,
+.popup {
+  position: relative;
+  z-index: 10; /* 👈 keeps UI elements above the canvas */
+}
 
