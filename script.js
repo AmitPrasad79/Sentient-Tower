@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --- Element references ---
   const menuScreen = document.getElementById("menu");
   const gameScreen = document.getElementById("game");
   const startBtn = document.getElementById("start-btn");
@@ -21,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameRunning = false;
   let countdown = 3;
 
+  // --- Adjust tower canvas to inner box ---
   function resizeCanvas() {
     const rect = towerCanvas.parentElement.getBoundingClientRect();
     W = rect.width;
@@ -31,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
 
-  // --- Difficulty selection ---
+  // --- Difficulty select ---
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       modeBtns.forEach((b) => b.classList.remove("active"));
@@ -44,13 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  startBtn.addEventListener("click", () => {
+  // --- Start Game button ---
+  startBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // make sure background canvas doesn’t steal clicks
     menuScreen.classList.add("hidden");
     gameScreen.classList.remove("hidden");
     startGame();
   });
 
-  // --- Game core ---
+  // --- Start actual game ---
   function startGame() {
     score = 0;
     tower = [];
@@ -62,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     runCountdown();
   }
 
+  // --- 3..2..1..GO countdown ---
   function runCountdown() {
     const timer = setInterval(() => {
       ctx.clearRect(0, 0, W, H);
@@ -82,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000);
   }
 
+  // --- Initialize base block ---
   function initTower() {
     const base = { x: W / 2, y: H - blockHeight / 2, w: W * 0.6, h: blockHeight, color: "#ff66cc" };
     tower.push(base);
@@ -89,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loop();
   }
 
+  // --- Spawn new moving block ---
   function spawnMoving() {
     const last = tower[tower.length - 1];
     moving = {
@@ -101,22 +108,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // --- Main draw loop ---
   function loop() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
     if (moving && gameRunning) {
       moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 < 0 || moving.x + moving.w / 2 > W) {
-        moving.dir *= -1;
-      }
+      if (moving.x - moving.w / 2 < 0 || moving.x + moving.w / 2 > W) moving.dir *= -1;
     }
 
     for (const b of tower) drawBlock(b);
     if (moving) drawBlock(moving);
+
     requestAnimationFrame(loop);
   }
 
+  // --- Draw block ---
   function drawBlock(b) {
     ctx.save();
     ctx.translate(b.x, b.y);
@@ -134,10 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const right = Math.min(moving.x + moving.w / 2, top.x + top.w / 2);
     const overlap = right - left;
 
-    if (overlap <= 0) {
-      gameOver();
-      return;
-    }
+    if (overlap <= 0) return gameOver();
 
     const newBlock = {
       x: (left + right) / 2,
@@ -146,15 +151,15 @@ document.addEventListener("DOMContentLoaded", () => {
       h: blockHeight,
       color: "#ff66cc"
     };
-
     tower.push(newBlock);
     score++;
     scoreEl.textContent = `Score: ${score}`;
-    tower.forEach(b => (b.y += blockHeight + 4));
+    tower.forEach((b) => (b.y += blockHeight + 4));
     moving = null;
     setTimeout(spawnMoving, 200);
   }
 
+  // --- Game Over ---
   function gameOver() {
     gameRunning = false;
     winPopup.classList.remove("hidden");
@@ -162,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Controls ---
   towerCanvas.addEventListener("click", placeBlock);
-  window.addEventListener("keydown", e => {
+  window.addEventListener("keydown", (e) => {
     if (e.code === "Space") placeBlock();
   });
   resetBtn.addEventListener("click", () => startGame());
