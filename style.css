@@ -2,11 +2,10 @@
   box-sizing: border-box;
 }
 
-body, html {
+body {
   margin: 0;
-  padding: 0;
   font-family: "Poppins", sans-serif;
-  background: #000;
+  background: #000; /* Outer black background */
   color: #ffe6f9;
   display: flex;
   align-items: center;
@@ -15,46 +14,16 @@ body, html {
   overflow: hidden;
 }
 
-/* --- BACKGROUND CANVAS --- */
-#bgCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, #0a0013 20%, #000 100%);
-  z-index: -10;           /* keep it way behind everything */
-  pointer-events: none !important; /* so it never blocks clicks */
-}
-
-/* --- GENERAL LAYOUT --- */
-.game-container {
-  position: relative;
-  z-index: 10;
-  border: 3px solid rgba(255, 102, 204, 0.25);
-  border-radius: 16px;
-  background: rgba(20, 0, 20, 0.6);
-  box-shadow:
-    0 0 25px rgba(255, 102, 204, 0.15),
-    inset 0 0 20px rgba(255, 102, 204, 0.1);
-  padding: 24px;
-  margin: 50px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  transform: scale(1.1);
-}
-
 main {
-  width: 100%;
+  width: 94%;
   max-width: 720px;
+  margin: auto;
   text-align: center;
+  position: relative;
+  padding: 18px;
 }
 
-/* --- SCREENS --- */
-.screen.hidden {
+.screen {
   display: none;
 }
 .screen.active {
@@ -73,8 +42,8 @@ main {
   margin-bottom: 12px;
 }
 
-/* --- BUTTONS --- */
-.btn, .mode-btn {
+.btn,
+.mode-btn {
   background: #1a001a;
   border: 2px solid #ff66cc;
   color: #ff66cc;
@@ -97,7 +66,10 @@ main {
   transform: scale(1.05);
 }
 
-/* --- GAME UI --- */
+.menu-actions {
+  margin-top: 12px;
+}
+
 .controls-container {
   border: 2px solid rgba(255, 102, 204, 0.3);
   border-radius: 12px;
@@ -122,36 +94,46 @@ main {
   color: #ffb3d9;
 }
 
-/* --- GAME BOX --- */
 .tower-wrapper {
   display: flex;
   justify-content: center;
 }
 
 .tower-box {
-  width: 480px;
-  height: 640px;
-  background: #000;
-  border: 3px solid rgba(255, 102, 204, 0.5);
-  border-radius: 16px;
-  box-shadow:
-    0 0 30px rgba(255, 102, 204, 0.4),
-    inset 0 0 30px rgba(255, 102, 204, 0.3);
+  width: 360px;
+  height: 480px;
+  background: rgba(255, 0, 128, 0.08);
+  border: 3px solid rgba(255, 102, 204, 0.4);
+  box-shadow: 0 0 20px rgba(255, 102, 204, 0.3),
+              inset 0 0 25px rgba(255, 102, 204, 0.2);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  z-index: 5;
+
+  /* ✅ Center the canvas perfectly inside */
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 #towerCanvas {
   width: 100%;
   height: 100%;
   display: block;
-  background: #000;
-  border-radius: 16px;
+  border-radius: 14px;
+  background: radial-gradient(circle at center, rgba(255, 102, 204, 0.15), rgba(0, 0, 0, 0.9));
+  z-index: 10;
+  position: relative;
 }
 
-/* --- WIN POPUP --- */
+#towerCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: rgba(255, 182, 232, 0.04);
+}
+
 .popup {
   position: fixed;
   inset: 0;
@@ -161,9 +143,11 @@ main {
   background: rgba(0, 0, 0, 0.8);
   z-index: 20;
 }
+
 .popup.hidden {
   display: none;
 }
+
 .popup-inner {
   background: #1a001a;
   padding: 20px;
@@ -172,19 +156,62 @@ main {
   text-align: center;
   box-shadow: 0 0 20px rgba(255, 102, 204, 0.2);
 }
+
 .popup-inner h2 {
   color: #ff66cc;
 }
 
-/* --- FOOTER --- */
+.game-container {
+  border: 3px solid rgba(255, 102, 204, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(255, 102, 204, 0.15),
+              inset 0 0 20px rgba(255, 102, 204, 0.1);
+  background: rgba(20, 0, 20, 0.6);
+  padding: 20px 24px 28px;
+  max-width: 800px;
+  width: fit-content;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  z-index: 5;
+}
+
+@media (max-width: 640px) {
+  .tower-box {
+    width: 90vw;
+    height: 110vw;
+  }
+  .game-container {
+    width: 94%;
+    padding: 16px;
+    margin: 20px auto;
+  }
+}
+
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background: #000;
+}
+
 #footer {
   position: fixed;
   bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 14px;
+  text-align: center;
   color: #aaa;
-  z-index: 5;
+  z-index: 3;
 }
 #footer a {
   color: #ff66cc;
@@ -194,42 +221,62 @@ main {
   text-decoration: underline;
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 640px) {
-  .tower-box {
-    width: 90vw;
-    height: 120vw;
-  }
-  .game-container {
-    width: 94%;
-    padding: 16px;
-    margin: 20px auto;
-  }
+.game-container {
+  transform: scale(1.2);
 }
 
-/* --- FIX: Ensure UI always above canvas --- */
-body {
-  position: relative;
-  overflow: hidden;
+.mode-row {
+  margin: 20px 0;
 }
 
+.mode-btn {
+  cursor: pointer;
+}
+
+/* Make sure the background canvas is behind everything */
 #bgCanvas {
-  z-index: 0 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;          /* put canvas completely behind */
+  pointer-events: none; /* ensure it never catches clicks */
+}
+
+
+/* Bring your main game container above it */
+.game-container {
+  position: relative;
+  z-index: 10;
+  transform: scale(1.2); /* makes box bigger */
 }
 
 .game-container,
-#footer,
-.popup {
+#app,
+.screen {
   position: relative;
   z-index: 10;
 }
 
-#app {
+/* --- FINAL FIX FOR UNCLICKABLE BUTTONS --- */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #0a0013 20%, #000 100%);
+  pointer-events: none; /* 👈 prevents blocking any button clicks */
+  z-index: -2;           /* 👈 sends it completely behind everything */
+}
+
+/* Ensure all game UI is clickable */
+.game-container,
+#app,
+.screen,
+button,
+a {
   position: relative;
   z-index: 10;
 }
-
-button, canvas, .screen {
-  pointer-events: auto !important;
-}
-
