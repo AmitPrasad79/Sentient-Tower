@@ -213,7 +213,5 @@ body, html {
 
 #start-btn {
   display: block;
-  margin: 25px auto;
-  padding: 10px 20px;
-  font-weight: 600;
+  margin: 20px auto 0; /* centers it horizontally and adds spacing on top */
 }
