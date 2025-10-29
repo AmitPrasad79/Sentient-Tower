@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
       modeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       startBtn.disabled = false;
-
       if (btn.dataset.speed === "slow") speed = 2;
       if (btn.dataset.speed === "medium") speed = 3.5;
       if (btn.dataset.speed === "fast") speed = 5;
@@ -49,9 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
     menuScreen.classList.add("hidden");
-    menuScreen.classList.remove("active");
     gameScreen.classList.remove("hidden");
-    gameScreen.classList.add("active");
     startGame();
   });
 
@@ -108,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function spawnMoving() {
     const last = tower[tower.length - 1];
     const fromLeft = Math.random() < 0.5;
-    const startX = fromLeft ? -last.w / 2 : W + last.w / 2;
+    const startX = fromLeft ? 0 - last.w / 2 : W + last.w / 2;
 
     moving = {
       x: startX,
@@ -118,12 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
       dir: fromLeft ? 1 : -1,
       color: "#ff66cc",
     };
-
-    // Slightly increase speed as tower grows
-    speed = Math.min(6, 2 + tower.length * 0.1);
   }
 
-  // ✅ Draw a single block
+  // ✅ Draw single block
   function drawBlock(b) {
     ctx.save();
     ctx.translate(b.x, b.y);
@@ -133,86 +127,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ✅ Main game loop
-function loop() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
 
-  const goalHeight = 80;
-  ctx.strokeStyle = "#ffea00";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, goalHeight);
-  ctx.lineTo(W, goalHeight);
-  ctx.stroke();
-  ctx.fillStyle = "#ffea00";
-  ctx.font = "12px Poppins";
-  ctx.textAlign = "center";
-  ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
+    // goal line
+    const goalHeight = 80;
+    ctx.strokeStyle = "#ffea00";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, goalHeight);
+    ctx.lineTo(W, goalHeight);
+    ctx.stroke();
+    ctx.fillStyle = "#ffea00";
+    ctx.font = "12px Poppins";
+    ctx.textAlign = "center";
+    ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
-  for (const b of tower) drawBlock(b);
+    // draw tower
+    for (const b of tower) drawBlock(b);
 
-  // ✅ keep moving block alive when gameRunning
-  if (moving && gameRunning) {
-    moving.x += moving.dir * speed;
-    if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
-      moving.dir *= -1;
+    // move active block
+    if (moving && gameRunning) {
+      moving.x += moving.dir * speed;
+      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
+        moving.dir *= -1;
+      }
+      drawBlock(moving);
+    } else if (moving) {
+      drawBlock(moving);
     }
+
+    // win check
+    if (tower.length > 1 && gameRunning) {
+      const topBlock = tower[tower.length - 1];
+      if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+        cancelAnimationFrame(raf);
+        gameRunning = false;
+        moving = null;
+        showWinPopup();
+        return;
+      }
+    }
+
+    raf = requestAnimationFrame(loop);
   }
 
-  if (moving) drawBlock(moving);
-
-  // ✅ check WIN only when tower built enough
-  if (tower.length > 1 && gameRunning) {
-    const topBlock = tower[tower.length - 1];
-    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-      cancelAnimationFrame(raf);
-      gameRunning = false;
-      moving = null;
-      showWinPopup();
-      return;
-    }
-  }
-
-  raf = requestAnimationFrame(loop);
-}
-
-// ✅ clean menu handling
-menuBtn.addEventListener("click", () => {
-  cancelAnimationFrame(raf);
-  gameRunning = false;
-  moving = null;
-  winPopup.classList.add("hidden");
-  gameScreen.classList.add("hidden");
-  gameScreen.classList.remove("active");
-  menuScreen.classList.remove("hidden");
-  menuScreen.classList.add("active");
-});
-
-
-  // ✅ Show Win Popup
+  // ✅ Popup helpers
   function showWinPopup() {
     winPopup.querySelector("h2").textContent = "🎉 You Win!";
-    winPopup.querySelector("#win-text").textContent = "You reached the Goal Line!";
+    winPopup.querySelector("#win-text").textContent =
+      "You reached the Goal Line!";
     winPopup.classList.remove("hidden");
   }
 
-  // ✅ Show Lose Popup
   function showLosePopup() {
     winPopup.querySelector("h2").textContent = "💀 You Lose!";
-    winPopup.querySelector("#win-text").textContent = "Your tower collapsed!";
+    winPopup.querySelector("#win-text").textContent =
+      "Your tower collapsed!";
     winPopup.classList.remove("hidden");
   }
 
-  // ✅ Game Over (Lose)
+  // ✅ Lose condition
   function gameOver() {
-    cancelAnimationFrame(raf);
     gameRunning = false;
     moving = null;
+    cancelAnimationFrame(raf);
     showLosePopup();
   }
 
-  // ✅ Place the moving block
+  // ✅ Place block
   function placeBlock() {
     if (!gameRunning || !moving) return;
 
@@ -221,10 +206,7 @@ menuBtn.addEventListener("click", () => {
     const right = Math.min(moving.x + moving.w / 2, top.x + top.w / 2);
     const overlap = right - left;
 
-    if (overlap <= 0) {
-      gameOver();
-      return;
-    }
+    if (overlap <= 0) return gameOver();
 
     const newBlock = {
       x: (left + right) / 2,
@@ -238,7 +220,9 @@ menuBtn.addEventListener("click", () => {
     score++;
     scoreEl.textContent = `Score: ${score}`;
     moving = null;
-    setTimeout(spawnMoving, 300);
+
+    // spawn new one after short delay
+    setTimeout(spawnMoving, 400);
   }
 
   // ✅ Controls
@@ -246,17 +230,24 @@ menuBtn.addEventListener("click", () => {
   window.addEventListener("keydown", (e) => {
     if (e.code === "Space") placeBlock();
   });
+
   resetBtn.addEventListener("click", startGame);
+
   menuBtn.addEventListener("click", () => {
+    cancelAnimationFrame(raf);
+    gameRunning = false;
+    moving = null;
+    winPopup.classList.add("hidden");
     gameScreen.classList.add("hidden");
     menuScreen.classList.remove("hidden");
-    cancelAnimationFrame(raf);
   });
+
   winMain.addEventListener("click", () => {
     winPopup.classList.add("hidden");
     gameScreen.classList.add("hidden");
     menuScreen.classList.remove("hidden");
   });
+
   winRestart.addEventListener("click", () => {
     winPopup.classList.add("hidden");
     startGame();
