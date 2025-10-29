@@ -164,6 +164,18 @@ function loop() {
     drawBlock(moving);
   }
 
+// ✅ Check win condition — place this BEFORE requestAnimationFrame
+  if (tower.length > 0) {
+    const topBlock = tower[tower.length - 1];
+    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+      gameRunning = false;
+      moving = null;
+      cancelAnimationFrame(raf);
+      winPopup.classList.remove("hidden");
+      return; // stop loop
+    }
+  }
+  
   // loop again
   raf = requestAnimationFrame(loop);
 }
