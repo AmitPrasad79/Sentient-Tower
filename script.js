@@ -158,10 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tower.push(newBlock);
     score++;
     scoreEl.textContent = `Score: ${score}`;
-
-    // Move everything down
-    tower.forEach((b) => (b.y += blockHeight + 4));
-
     moving = null;
     setTimeout(spawnMoving, 300);
   }
