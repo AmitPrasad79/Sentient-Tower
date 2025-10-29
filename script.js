@@ -45,13 +45,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ✅ Start Game
-  startBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    menuScreen.classList.add("hidden");
-    gameScreen.classList.remove("hidden");
-    startGame();
-  });
+// ✅ Start Game
+startBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  // Hide menu completely
+  menuScreen.classList.add("hidden");
+  menuScreen.classList.remove("active");
+
+  // Show game screen
+  gameScreen.classList.remove("hidden");
+  gameScreen.classList.add("active");
+
+  // Start the game logic
+  startGame();
+});
 
   // ✅ Game Setup
   function startGame() {
