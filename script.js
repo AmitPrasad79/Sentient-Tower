@@ -159,16 +159,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (moving) drawBlock(moving);
 
-    if (tower.length > 1 && gameRunning) {
-      const topBlock = tower[tower.length - 1];
-      if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-        cancelAnimationFrame(raf);
-        gameRunning = false;
-        moving = null;
-        showWinPopup();
-        return;
-      }
+    if (tower.length > 5 && gameRunning) {
+    const topBlock = tower[tower.length - 1];
+    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+    cancelAnimationFrame(raf);
+    gameRunning = false;
+    moving = null;
+    showWinPopup();
+    return;
     }
+  }
 
     raf = requestAnimationFrame(loop);
   }
