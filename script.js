@@ -105,36 +105,46 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ✅ Spawn a new moving block
-  function spawnMoving() {
-    const last = tower[tower.length - 1];
-    moving = {
-      x: 0,
-      y: last.y - blockHeight - 4,
-      w: last.w,
-      h: blockHeight,
-      dir: 1,
-      color: "#ff66cc"
-    };
-  }
+// ✅ Spawn a new moving block
+function spawnMoving() {
+  const last = tower[tower.length - 1];
+  // Start from the left or right side
+  const fromLeft = Math.random() < 0.5;
+
+  moving = {
+    x: fromLeft ? 0 : W,
+    y: last.y - blockHeight - 4,
+    w: last.w,
+    h: blockHeight,
+    dir: fromLeft ? 1 : -1,
+    color: "#ff66cc"
+  };
+}
 
   // ✅ Game loop (runs every frame)
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
 
-    if (moving && gameRunning) {
-      moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
-        moving.dir *= -1;
-      }
+  if (moving && gameRunning) {
+    moving.x += moving.dir * speed;
+
+    // Bounce off walls
+    if (moving.x - moving.w / 2 <= 0) {
+      moving.dir = 1;
+      moving.x = moving.w / 2;
+    } else if (moving.x + moving.w / 2 >= W) {
+      moving.dir = -1;
+      moving.x = W - moving.w / 2;
     }
-
-    for (const b of tower) drawBlock(b);
-    if (moving) drawBlock(moving);
-
-    requestAnimationFrame(loop);
   }
+
+  for (const b of tower) drawBlock(b);
+  if (moving) drawBlock(moving);
+
+  requestAnimationFrame(loop);
+}
 
   // ✅ Draw a single block
   function drawBlock(b) {
