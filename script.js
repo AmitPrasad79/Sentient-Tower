@@ -104,22 +104,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ✅ Spawn moving block (random side)
   function spawnMoving() {
-    const last = tower[tower.length - 1];
-    const fromLeft = Math.random() < 0.5;
-    const startX = fromLeft ? -last.w / 2 : W + last.w / 2;
+  const last = tower[tower.length - 1];
+  const fromLeft = Math.random() < 0.5;
+  const startX = fromLeft ? 0 - last.w / 2 : W + last.w / 2;
 
-    moving = {
-      x: startX,
-      y: last.y - blockHeight - 4,
-      w: last.w,
-      h: blockHeight,
-      dir: fromLeft ? 1 : -1,
-      color: "#ff66cc",
-    };
+  moving = {
+    x: startX,
+    y: last.y - blockHeight - 4,
+    w: last.w,
+    h: blockHeight,
+    dir: fromLeft ? 1 : -1,
+    color: "#ff66cc",
+  };
 
-    // Slightly increase speed as tower grows
-    speed = Math.min(6, 2 + tower.length * 0.1);
-  }
+  // Make sure it's visible right away
+  drawBlock(moving);
+  // Slightly increase speed as tower grows
+  speed = Math.min(6, 2 + tower.length * 0.1);
+}
 
   // ✅ Draw a single block
   function drawBlock(b) {
@@ -132,47 +134,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ✅ Main game loop
   function loop() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
 
-    const goalHeight = 80;
-    ctx.strokeStyle = "#ffea00";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, goalHeight);
-    ctx.lineTo(W, goalHeight);
-    ctx.stroke();
-    ctx.fillStyle = "#ffea00";
-    ctx.font = "12px Poppins";
-    ctx.textAlign = "center";
-    ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
+  const goalHeight = 80;
+  ctx.strokeStyle = "#ffea00";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, goalHeight);
+  ctx.lineTo(W, goalHeight);
+  ctx.stroke();
+  ctx.fillStyle = "#ffea00";
+  ctx.font = "12px Poppins";
+  ctx.textAlign = "center";
+  ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
-    for (const b of tower) drawBlock(b);
+  // draw tower blocks
+  for (const b of tower) drawBlock(b);
 
-    if (moving && gameRunning) {
-      moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
-        moving.dir *= -1;
-      }
+  // ✅ Make block actually move
+  if (moving && gameRunning) {
+    moving.x += moving.dir * speed;
+
+    // bounce when hitting edges
+    if (moving.x - moving.w / 2 <= 0) {
+      moving.x = moving.w / 2;
+      moving.dir = 1;
+    } else if (moving.x + moving.w / 2 >= W) {
+      moving.x = W - moving.w / 2;
+      moving.dir = -1;
     }
-
-    if (moving) drawBlock(moving);
-
-    // ✅ check WIN only when tower built enough
-    if (tower.length > 1 && gameRunning) {
-      const topBlock = tower[tower.length - 1];
-      if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-        cancelAnimationFrame(raf);
-        gameRunning = false;
-        moving = null;
-        showWinPopup();
-        return;
-      }
-    }
-
-    raf = requestAnimationFrame(loop);
   }
+
+  if (moving) drawBlock(moving);
+
+  // ✅ check WIN only when tower built enough
+  if (tower.length > 1 && gameRunning) {
+    const topBlock = tower[tower.length - 1];
+    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+      cancelAnimationFrame(raf);
+      gameRunning = false;
+      moving = null;
+      showWinPopup();
+      return;
+    }
+  }
+
+  raf = requestAnimationFrame(loop);
+}
 
   // ✅ Show Win Popup
   function showWinPopup() {
