@@ -10,46 +10,55 @@
   <canvas id="bgCanvas"></canvas>
 
   <div class="game-container">
-   <main id="app">
-  <!-- MENU SCREEN -->
-  <section id="menu" class="screen active">
-    <h1 class="title">🎯 Sentient Tower</h1>
-    <p>Choose difficulty</p>
-    <div class="mode-row">
-      <button class="mode-btn" data-speed="slow">Easy</button>
-      <button class="mode-btn" data-speed="medium">Medium</button>
-      <button class="mode-btn" data-speed="fast">Hard</button>
-    </div>
-    <button id="start-btn" class="btn primary">▶ Start Game</button>
-  </section>
+    <main id="app">
 
-  <!-- GAME SCREEN -->
-  <section id="game" class="screen hidden">
-    <div class="controls-container">
-      <div class="left-controls">
-        <button id="reset-btn" class="btn">🗘 Reset</button>
-        <button id="menu-btn" class="btn">🏠 Menu</button>
-      </div>
-      <div class="right-controls">
-        <span id="score">Score: 0</span>
-      </div>
-    </div>
-    <div class="tower-wrapper">
-      <div class="tower-box">
-        <canvas id="towerCanvas"></canvas>
-      </div>
-    </div>
-  </section>
+      <!-- MENU SCREEN -->
+      <section id="menu" class="screen active">
+        <h1 class="title">🗼 Sentient Tower</h1>
+        <p class="hint">Choose difficulty</p>
+        <div class="mode-row">
+          <button class="mode-btn" data-speed="slow">Easy</button>
+          <button class="mode-btn" data-speed="medium">Medium</button>
+          <button class="mode-btn" data-speed="fast">Hard</button>
+        </div>
+        <div class="menu-actions">
+          <button id="start-btn" class="btn primary" disabled>▶ Start Game</button>
+        </div>
+      </section>
 
-  <!-- WIN POPUP -->
-  <div id="win" class="popup hidden">
-    <div class="popup-inner">
-      <h2>You Won!</h2>
-      <button id="win-restart" class="btn">Restart</button>
-      <button id="win-main" class="btn">Menu</button>
-    </div>
+      <!-- GAME SCREEN -->
+      <section id="game" class="screen hidden">
+        <div class="controls-container">
+          <div class="left-controls">
+            <button id="reset-btn" class="btn">🔄 Reset</button>
+            <button id="menu-btn" class="btn">🏠 Menu</button>
+          </div>
+          <div class="right-controls">
+            <span id="score" class="moves">Score: 0</span>
+          </div>
+        </div>
+
+        <div class="tower-wrapper">
+          <div id="tower-box" class="tower-box">
+            <canvas id="towerCanvas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- WIN POPUP -->
+      <div id="win" class="popup hidden">
+        <div class="popup-inner">
+          <h2>🎉 Great Job!</h2>
+          <p id="win-text">You built the Sentient Tower!</p>
+          <div class="popup-actions">
+            <button id="win-main" class="btn primary">🏠 Back to Menu</button>
+            <button id="win-restart" class="btn">🔁 Play Again</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
-</main>
 
   <div id="footer">
     Made with ❤️ by 
