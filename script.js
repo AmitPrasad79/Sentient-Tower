@@ -127,7 +127,7 @@ startBtn.addEventListener("click", (e) => {
   }
 
   // ✅ Main game loop
-  function loop() {
+function loop() {
   // clear background
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#000";
@@ -167,8 +167,6 @@ startBtn.addEventListener("click", (e) => {
   // loop again
   raf = requestAnimationFrame(loop);
 }
-    raf = requestAnimationFrame(loop);
-  }
 
   // ✅ Place the moving block
   function placeBlock() {
