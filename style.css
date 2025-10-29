@@ -210,3 +210,10 @@ body, html {
     margin: 20px auto;
   }
 }
+
+#start-btn {
+  display: block;
+  margin: 25px auto;
+  padding: 10px 20px;
+  font-weight: 600;
+}
