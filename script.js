@@ -133,52 +133,62 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ✅ Main game loop
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
 
-    // ✅ Draw goal line
-    const goalHeight = 80;
-    ctx.strokeStyle = "#ffea00";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, goalHeight);
-    ctx.lineTo(W, goalHeight);
-    ctx.stroke();
+  const goalHeight = 80;
+  ctx.strokeStyle = "#ffea00";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, goalHeight);
+  ctx.lineTo(W, goalHeight);
+  ctx.stroke();
+  ctx.fillStyle = "#ffea00";
+  ctx.font = "12px Poppins";
+  ctx.textAlign = "center";
+  ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
-    // ✅ Label
-    ctx.fillStyle = "#ffea00";
-    ctx.font = "12px Poppins";
-    ctx.textAlign = "center";
-    ctx.fillText("⚝ Goal Line", W / 2, goalHeight - 10);
+  for (const b of tower) drawBlock(b);
 
-    // ✅ Draw tower
-    for (const b of tower) drawBlock(b);
-
-    // ✅ Animate moving block
-    if (moving && gameRunning) {
-      moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
-        moving.dir *= -1;
-      }
-      drawBlock(moving);
+  // ✅ keep moving block alive when gameRunning
+  if (moving && gameRunning) {
+    moving.x += moving.dir * speed;
+    if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
+      moving.dir *= -1;
     }
-
-    // ✅ Check WIN condition
-    if (tower.length > 0 && gameRunning) {
-      const topBlock = tower[tower.length - 1];
-      if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-        cancelAnimationFrame(raf);
-        gameRunning = false;
-        moving = null;
-        showWinPopup();
-        return;
-      }
-    }
-
-    raf = requestAnimationFrame(loop);
   }
+
+  if (moving) drawBlock(moving);
+
+  // ✅ check WIN only when tower built enough
+  if (tower.length > 1 && gameRunning) {
+    const topBlock = tower[tower.length - 1];
+    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+      cancelAnimationFrame(raf);
+      gameRunning = false;
+      moving = null;
+      showWinPopup();
+      return;
+    }
+  }
+
+  raf = requestAnimationFrame(loop);
+}
+
+// ✅ clean menu handling
+menuBtn.addEventListener("click", () => {
+  cancelAnimationFrame(raf);
+  gameRunning = false;
+  moving = null;
+  winPopup.classList.add("hidden");
+  gameScreen.classList.add("hidden");
+  gameScreen.classList.remove("active");
+  menuScreen.classList.remove("hidden");
+  menuScreen.classList.add("active");
+});
+
 
   // ✅ Show Win Popup
   function showWinPopup() {
