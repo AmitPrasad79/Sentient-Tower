@@ -211,7 +211,24 @@ body, html {
   }
 }
 
+#menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* centers horizontally */
+  justify-content: center; /* centers vertically if you want */
+  text-align: center;
+}
+
+#menu h1,
+#menu p {
+  text-align: center;
+}
+
+.mode-btn {
+  margin: 5px;
+}
+
 #start-btn {
   display: block;
-  margin: 20px auto 0; /* centers it horizontally and adds spacing on top */
+  margin: 20px auto 0;
 }
