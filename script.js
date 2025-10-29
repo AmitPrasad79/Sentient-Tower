@@ -105,17 +105,23 @@ startBtn.addEventListener("click", (e) => {
   }
 
   // ✅ Spawn moving block
-  function spawnMoving() {
-    const last = tower[tower.length - 1];
-    moving = {
-      x: W / 2, // Start centered
-      y: last.y - blockHeight - 4,
-      w: last.w,
-      h: blockHeight,
-      dir: 1,
-      color: "#ff66cc",
-    };
-  }
+  // ✅ Spawn moving block
+function spawnMoving() {
+  const last = tower[tower.length - 1];
+
+  // Randomize direction and starting side
+  const fromLeft = Math.random() < 0.5;
+  const startX = fromLeft ? 0 - last.w / 2 : W + last.w / 2;
+
+  moving = {
+    x: startX,
+    y: last.y - blockHeight - 4,
+    w: last.w,
+    h: blockHeight,
+    dir: fromLeft ? 1 : -1,
+    color: "#ff66cc",
+  };
+}
 
   // ✅ Draw a single block
   function drawBlock(b) {
@@ -127,58 +133,81 @@ startBtn.addEventListener("click", (e) => {
   }
 
   // ✅ Main game loop
+// ✅ Main game loop
 function loop() {
-  // clear background
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, W, H);
 
-  // ✅ draw fixed yellow goal line near top
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // ensure no transform
-  const goalHeight = 80; // distance from top
+  // ✅ Draw goal line
+  const goalHeight = 80;
   ctx.strokeStyle = "#ffea00";
-  ctx.shadowColor = "#ffea00";
-  ctx.shadowBlur = 8;
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(0, goalHeight);
   ctx.lineTo(W, goalHeight);
   ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#ffea00";
-  ctx.font = "16px Poppins";
-  ctx.textAlign = "center";
-  ctx.fillText("🏁 Goal Line", W / 2, goalHeight - 10);
-  ctx.restore();
 
-  // draw existing tower blocks
+  // ✅ Label
+  ctx.fillStyle = "#ffea00";
+  ctx.font = "12px Poppins";
+  ctx.textAlign = "center";
+  ctx.fillText("⚝ Goal Line", W / 2, goalHeight - 10);
+
+  // ✅ Draw tower blocks
   for (const b of tower) drawBlock(b);
 
-  // draw moving block
+  // ✅ Animate moving block
   if (moving && gameRunning) {
     moving.x += moving.dir * speed;
+
+    // Bounce from edges
     if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
       moving.dir *= -1;
     }
+
     drawBlock(moving);
   }
 
-// ✅ Check win condition — place this BEFORE requestAnimationFrame
-  if (tower.length > 0) {
+  // ✅ Check WIN condition
+  if (tower.length > 0 && gameRunning) {
     const topBlock = tower[tower.length - 1];
+
+    // If tower reaches or crosses the goal line
     if (topBlock.y - topBlock.h / 2 <= goalHeight) {
       gameRunning = false;
       moving = null;
       cancelAnimationFrame(raf);
-      winPopup.classList.remove("hidden");
-      return; // stop loop
+      showWinPopup();
+      return;
     }
   }
-  
-  // loop again
+
+  // Continue loop
   raf = requestAnimationFrame(loop);
 }
+
+// ✅ Separate win and lose popup display functions
+function showWinPopup() {
+  winPopup.querySelector("h2").textContent = "🎉 You Win!";
+  winPopup.querySelector("#win-text").textContent = "You reached the Goal Line!";
+  winPopup.classList.remove("hidden");
+}
+
+function showLosePopup() {
+  winPopup.querySelector("h2").textContent = "💀 You Lose!";
+  winPopup.querySelector("#win-text").textContent = "Your tower collapsed!";
+  winPopup.classList.remove("hidden");
+}
+
+// ✅ Game Over (lose condition)
+function gameOver() {
+  gameRunning = false;
+  moving = null;
+  cancelAnimationFrame(raf);
+  showLosePopup();
+}
+
 
   // ✅ Place the moving block
   function placeBlock() {
