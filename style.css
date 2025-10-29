@@ -206,3 +206,30 @@ main {
     margin: 20px auto;
   }
 }
+
+/* --- FIX: Ensure UI always above canvas --- */
+body {
+  position: relative;
+  overflow: hidden;
+}
+
+#bgCanvas {
+  z-index: 0 !important;
+}
+
+.game-container,
+#footer,
+.popup {
+  position: relative;
+  z-index: 10;
+}
+
+#app {
+  position: relative;
+  z-index: 10;
+}
+
+button, canvas, .screen {
+  pointer-events: auto !important;
+}
+
