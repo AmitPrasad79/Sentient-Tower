@@ -243,3 +243,11 @@ body, html {
 #game {
   display: none; /* hide game initially */
 }
+
+#menu.hidden {
+  display: none;
+}
+#menu.active {
+  display: flex; /* not block */
+}
+
