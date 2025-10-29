@@ -128,20 +128,45 @@ startBtn.addEventListener("click", (e) => {
 
   // ✅ Main game loop
   function loop() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
+  // clear background
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
 
-    for (const b of tower) drawBlock(b);
+  // ✅ draw fixed yellow goal line near top
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // ensure no transform
+  const goalHeight = 80; // distance from top
+  ctx.strokeStyle = "#ffea00";
+  ctx.shadowColor = "#ffea00";
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, goalHeight);
+  ctx.lineTo(W, goalHeight);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffea00";
+  ctx.font = "16px Poppins";
+  ctx.textAlign = "center";
+  ctx.fillText("🏁 Goal Line", W / 2, goalHeight - 10);
+  ctx.restore();
 
-    if (moving && gameRunning) {
-      moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
-        moving.dir *= -1;
-      }
-      drawBlock(moving);
+  // draw existing tower blocks
+  for (const b of tower) drawBlock(b);
+
+  // draw moving block
+  if (moving && gameRunning) {
+    moving.x += moving.dir * speed;
+    if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
+      moving.dir *= -1;
     }
+    drawBlock(moving);
+  }
 
+  // loop again
+  raf = requestAnimationFrame(loop);
+}
     raf = requestAnimationFrame(loop);
   }
 
