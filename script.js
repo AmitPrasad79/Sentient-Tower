@@ -1,4 +1,3 @@
-// script.js — cleaned, robust, ready-to-drop-in
 document.addEventListener("DOMContentLoaded", () => {
   const menuScreen = document.getElementById("menu");
   const gameScreen = document.getElementById("game");
@@ -13,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const winRestart = document.getElementById("win-restart");
 
   const ctx = towerCanvas.getContext("2d");
-  let W = 0, H = 0;
+  let W, H;
   let tower = [];
   let moving = null;
   let score = 0;
@@ -21,44 +20,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const blockHeight = 25;
   let gameRunning = false;
   let countdown = 3;
-  let raf = null;
-  let countdownTimer = null;
-
-  function setVisibleMenu(show) {
-    if (show) {
-      menuScreen.classList.remove("hidden");
-      menuScreen.classList.add("active");
-      gameScreen.classList.remove("active");
-      gameScreen.classList.add("hidden");
-    } else {
-      menuScreen.classList.remove("active");
-      menuScreen.classList.add("hidden");
-      gameScreen.classList.remove("hidden");
-      gameScreen.classList.add("active");
-    }
-  }
+  let raf;
 
   function resizeCanvas() {
-    // Size canvas to the tower-box element
     const rect = towerCanvas.parentElement.getBoundingClientRect();
-    W = Math.round(rect.width);
-    H = Math.round(rect.height);
-    // set canvas pixel dimensions to match CSS pixels
+    W = rect.width;
+    H = rect.height;
     towerCanvas.width = W;
     towerCanvas.height = H;
   }
-  window.addEventListener("resize", () => {
-    resizeCanvas();
-    // Redraw current frame immediately
-    drawFrame();
-  });
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
 
-  // Difficulty buttons
+  // ✅ Difficulty buttons
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       modeBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      startBtn.disabled = false; // allow start after difficulty chosen
+      startBtn.disabled = false;
 
       if (btn.dataset.speed === "slow") speed = 2;
       if (btn.dataset.speed === "medium") speed = 3.5;
@@ -66,72 +45,69 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Start Game button
+  // ✅ Start Game
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    setVisibleMenu(false);
+    menuScreen.style.display = "none";  // hide menu
+    gameScreen.style.display = "block"; // show game
     startGame();
   });
 
-  // Start / reset the game state
+  // ✅ Game Setup
   function startGame() {
     cancelAnimationFrame(raf);
-    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    score = 0;
     tower = [];
     moving = null;
-    score = 0;
-    scoreEl.textContent = "Score: 0";
-    countdown = 3;
     gameRunning = false;
+    countdown = 3;
+    scoreEl.textContent = "Score: 0";
     winPopup.classList.add("hidden");
     resizeCanvas();
     runCountdown();
   }
 
-  // Countdown 3..2..1..GO!
+  // ✅ Countdown (3..2..1..GO!)
   function runCountdown() {
-    // Ensure canvas cleared so countdown is visible each second
-    countdownTimer = setInterval(() => {
+    const timer = setInterval(() => {
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#ff66cc";
-      ctx.font = `${Math.floor(H / 4)}px Poppins, sans-serif`;
+      ctx.font = `${H / 4}px Poppins`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(countdown > 0 ? countdown : "GO!", W / 2, H / 2);
 
       if (countdown < 0) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
+        clearInterval(timer);
         initTower();
         gameRunning = true;
-        // start the continuous loop (guaranteed)
         loop();
       }
       countdown--;
     }, 1000);
   }
 
-  // Create initial base block and spawn first moving block
+  // ✅ Create base block
   function initTower() {
     const base = {
       x: W / 2,
       y: H - blockHeight / 2,
-      w: Math.max(40, W * 0.6), // ensure not too narrow
+      w: W * 0.6,
       h: blockHeight,
       color: "#ff66cc",
     };
-    tower = [base];
+    tower.push(base);
     spawnMoving();
   }
 
-  // Spawn moving block: random left or right start, random dir
+  // ✅ Spawn moving block (random side)
   function spawnMoving() {
-    if (!tower.length) return;
     const last = tower[tower.length - 1];
     const fromLeft = Math.random() < 0.5;
-    const startX = fromLeft ? -last.w / 2 - 10 : W + last.w / 2 + 10;
+    const startX = fromLeft ? -last.w / 2 : W + last.w / 2;
+
     moving = {
       x: startX,
       y: last.y - blockHeight - 4,
@@ -140,11 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
       dir: fromLeft ? 1 : -1,
       color: "#ff66cc",
     };
-    // speed grows slightly as player stacks
-    speed = Math.min(7, 2 + tower.length * 0.15);
+
+    // Slightly increase speed as tower grows
+    speed = Math.min(6, 2 + tower.length * 0.1);
   }
 
-  // draw single block helper
+  // ✅ Draw a single block
   function drawBlock(b) {
     ctx.save();
     ctx.translate(b.x, b.y);
@@ -153,13 +130,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.restore();
   }
 
-  // draw the goal line + frame background
-  function drawFrame() {
+  // ✅ Main game loop
+  function loop() {
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
-    // goal line
     const goalHeight = 80;
     ctx.strokeStyle = "#ffea00";
     ctx.lineWidth = 3;
@@ -167,43 +143,26 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.moveTo(0, goalHeight);
     ctx.lineTo(W, goalHeight);
     ctx.stroke();
-
     ctx.fillStyle = "#ffea00";
-    ctx.font = "12px Poppins, sans-serif";
+    ctx.font = "12px Poppins";
     ctx.textAlign = "center";
     ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
-  }
 
-  // Main loop
-  function loop() {
-    // always draw frame + tower + moving
-    drawFrame();
-
-    // draw existing stack
     for (const b of tower) drawBlock(b);
 
-    // animate moving block if present and gameRunning
-    if (moving) {
-      if (gameRunning) {
-        moving.x += moving.dir * speed;
-        // bounce off edges so player can always catch it
-        if (moving.x - moving.w / 2 <= 0) {
-          moving.x = moving.w / 2;
-          moving.dir *= -1;
-        } else if (moving.x + moving.w / 2 >= W) {
-          moving.x = W - moving.w / 2;
-          moving.dir *= -1;
-        }
+    if (moving && gameRunning) {
+      moving.x += moving.dir * speed;
+      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
+        moving.dir *= -1;
       }
-      drawBlock(moving);
     }
 
-    // Win check: top block crossing goal
+    if (moving) drawBlock(moving);
+
+    // ✅ check WIN only when tower built enough
     if (tower.length > 1 && gameRunning) {
       const topBlock = tower[tower.length - 1];
-      const goalHeight = 80;
       if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-        // win
         cancelAnimationFrame(raf);
         gameRunning = false;
         moving = null;
@@ -212,11 +171,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // continue animation
     raf = requestAnimationFrame(loop);
   }
 
-  // Place a block when player clicks/presses space
+  // ✅ Show Win Popup
+  function showWinPopup() {
+    winPopup.querySelector("h2").textContent = "🎉 You Win!";
+    winPopup.querySelector("#win-text").textContent = "You reached the Goal Line!";
+    winPopup.classList.remove("hidden");
+  }
+
+  // ✅ Show Lose Popup
+  function showLosePopup() {
+    winPopup.querySelector("h2").textContent = "💀 You Lose!";
+    winPopup.querySelector("#win-text").textContent = "Your tower collapsed!";
+    winPopup.classList.remove("hidden");
+  }
+
+  function gameOver() {
+    cancelAnimationFrame(raf);
+    gameRunning = false;
+    moving = null;
+    showLosePopup();
+  }
+
+  // ✅ Place the moving block
   function placeBlock() {
     if (!gameRunning || !moving) return;
 
@@ -226,12 +205,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const overlap = right - left;
 
     if (overlap <= 0) {
-      // miss -> lose
       gameOver();
       return;
     }
 
-    // create new trimmed block representing overlap
     const newBlock = {
       x: (left + right) / 2,
       y: moving.y,
@@ -243,80 +220,33 @@ document.addEventListener("DOMContentLoaded", () => {
     tower.push(newBlock);
     score++;
     scoreEl.textContent = `Score: ${score}`;
-
-    // clear active moving block then spawn next after a short delay
     moving = null;
-    setTimeout(() => {
-      spawnMoving();
-      // ensure loop is running
-      if (!raf) loop();
-    }, 260);
+    setTimeout(spawnMoving, 300);
   }
 
-  // show win/lose
-  function showWinPopup() {
-    winPopup.querySelector("h2").textContent = "🎉 You Win!";
-    const winText = winPopup.querySelector("#win-text");
-    if (winText) winText.textContent = "You reached the Goal Line!";
-    winPopup.classList.remove("hidden");
-  }
-  function showLosePopup() {
-    winPopup.querySelector("h2").textContent = "💀 You Lose!";
-    const winText = winPopup.querySelector("#win-text");
-    if (winText) winText.textContent = "Your tower collapsed!";
-    winPopup.classList.remove("hidden");
-  }
-
-  function gameOver() {
-    cancelAnimationFrame(raf);
-    raf = null;
-    gameRunning = false;
-    moving = null;
-    showLosePopup();
-  }
-
-  // Controls
   towerCanvas.addEventListener("click", placeBlock);
   window.addEventListener("keydown", (e) => {
-    if (e.code === "Space") {
-      e.preventDefault();
-      placeBlock();
-    }
+    if (e.code === "Space") placeBlock();
   });
+  resetBtn.addEventListener("click", startGame);
 
-  resetBtn.addEventListener("click", () => {
-    startGame();
-  });
-
-  // single clean menu handler
   menuBtn.addEventListener("click", () => {
     cancelAnimationFrame(raf);
-    raf = null;
     gameRunning = false;
     moving = null;
     winPopup.classList.add("hidden");
-    setVisibleMenu(true);
-    // clear canvas for cleanliness
-    ctx.clearRect(0, 0, W, H);
+    gameScreen.style.display = "none"; // hide game
+    menuScreen.style.display = "flex"; // show menu
   });
 
   winMain.addEventListener("click", () => {
     winPopup.classList.add("hidden");
-    cancelAnimationFrame(raf);
-    raf = null;
-    gameRunning = false;
-    moving = null;
-    setVisibleMenu(true);
-    ctx.clearRect(0, 0, W, H);
+    gameScreen.style.display = "none";
+    menuScreen.style.display = "flex";
   });
 
   winRestart.addEventListener("click", () => {
     winPopup.classList.add("hidden");
     startGame();
   });
-
-  // initial UI state
-  resizeCanvas();
-  setVisibleMenu(true);
-  startBtn.disabled = true;
 });
