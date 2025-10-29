@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const winPopup = document.getElementById("win");
   const winMain = document.getElementById("win-main");
   const winRestart = document.getElementById("win-restart");
-  const ctx = towerCanvas.getContext("2d");
 
+  const ctx = towerCanvas.getContext("2d");
   let W, H;
   let tower = [];
   let moving = null;
@@ -20,9 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const blockHeight = 25;
   let gameRunning = false;
   let countdown = 3;
-  let resizeTimeout;
+  let raf;
 
-  // ✅ Resize canvas to match tower-box
   function resizeCanvas() {
     const rect = towerCanvas.parentElement.getBoundingClientRect();
     W = rect.width;
@@ -30,13 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
     towerCanvas.width = W;
     towerCanvas.height = H;
   }
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeCanvas, 200);
-  });
+  window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
 
-  // ✅ Difficulty selection
+  // ✅ Difficulty buttons
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       modeBtns.forEach((b) => b.classList.remove("active"));
@@ -49,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ✅ Start game
+  // ✅ Start Game
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
     menuScreen.classList.add("hidden");
@@ -57,94 +53,61 @@ document.addEventListener("DOMContentLoaded", () => {
     startGame();
   });
 
+  // ✅ Game Setup
   function startGame() {
+    cancelAnimationFrame(raf);
     score = 0;
     tower = [];
     moving = null;
     gameRunning = false;
     countdown = 3;
-    winPopup.classList.add("hidden");
     scoreEl.textContent = "Score: 0";
+    winPopup.classList.add("hidden");
     resizeCanvas();
     runCountdown();
   }
 
-  // ✅ Countdown before game starts
+  // ✅ Countdown (3..2..1..GO!)
   function runCountdown() {
     const timer = setInterval(() => {
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#ff66cc";
-      ctx.font = `${Math.floor(H / 5)}px Poppins`;
+      ctx.font = `${H / 4}px Poppins`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(countdown > 0 ? countdown : "GO!", W / 2, H / 2);
 
       if (countdown < 0) {
         clearInterval(timer);
-        gameRunning = true;
         initTower();
+        gameRunning = true;
+        loop();
       }
       countdown--;
     }, 1000);
   }
 
-  // ✅ Initialize first block
+  // ✅ Create base block
   function initTower() {
-    const base = {
-      x: W / 2,
-      y: H - blockHeight / 2,
-      w: W * 0.6,
-      h: blockHeight,
-      color: "#ff66cc"
-    };
+    const base = { x: W / 2, y: H - blockHeight / 2, w: W * 0.6, h: blockHeight, color: "#ff66cc" };
     tower.push(base);
     spawnMoving();
-    loop();
   }
 
-  // ✅ Spawn a new moving block
-// ✅ Spawn a new moving block
-function spawnMoving() {
-  const last = tower[tower.length - 1];
-  // Start from the left or right side
-  const fromLeft = Math.random() < 0.5;
-
-  moving = {
-    x: fromLeft ? 0 : W,
-    y: last.y - blockHeight - 4,
-    w: last.w,
-    h: blockHeight,
-    dir: fromLeft ? 1 : -1,
-    color: "#ff66cc"
-  };
-}
-
-  // ✅ Game loop (runs every frame)
-function loop() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
-
-  if (moving && gameRunning) {
-    moving.x += moving.dir * speed;
-
-    // Bounce off walls
-    if (moving.x - moving.w / 2 <= 0) {
-      moving.dir = 1;
-      moving.x = moving.w / 2;
-    } else if (moving.x + moving.w / 2 >= W) {
-      moving.dir = -1;
-      moving.x = W - moving.w / 2;
-    }
+  // ✅ Spawn moving block
+  function spawnMoving() {
+    const last = tower[tower.length - 1];
+    moving = {
+      x: W / 2, // Start centered
+      y: last.y - blockHeight - 4,
+      w: last.w,
+      h: blockHeight,
+      dir: 1,
+      color: "#ff66cc",
+    };
   }
-
-  for (const b of tower) drawBlock(b);
-  if (moving) drawBlock(moving);
-
-  requestAnimationFrame(loop);
-}
 
   // ✅ Draw a single block
   function drawBlock(b) {
@@ -155,7 +118,26 @@ function loop() {
     ctx.restore();
   }
 
-  // ✅ Place current block
+  // ✅ Main game loop
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+
+    for (const b of tower) drawBlock(b);
+
+    if (moving && gameRunning) {
+      moving.x += moving.dir * speed;
+      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
+        moving.dir *= -1;
+      }
+      drawBlock(moving);
+    }
+
+    raf = requestAnimationFrame(loop);
+  }
+
+  // ✅ Place the moving block
   function placeBlock() {
     if (!gameRunning || !moving) return;
 
@@ -171,23 +153,23 @@ function loop() {
       y: moving.y,
       w: overlap,
       h: blockHeight,
-      color: "#ff66cc"
+      color: "#ff66cc",
     };
-
     tower.push(newBlock);
     score++;
     scoreEl.textContent = `Score: ${score}`;
 
-    // Shift all blocks down
+    // Move everything down
     tower.forEach((b) => (b.y += blockHeight + 4));
-    moving = null;
 
+    moving = null;
     setTimeout(spawnMoving, 300);
   }
 
-  // ✅ Game over / win popup
+  // ✅ Game Over
   function gameOver() {
     gameRunning = false;
+    moving = null;
     winPopup.classList.remove("hidden");
   }
 
@@ -196,11 +178,11 @@ function loop() {
   window.addEventListener("keydown", (e) => {
     if (e.code === "Space") placeBlock();
   });
-
   resetBtn.addEventListener("click", startGame);
   menuBtn.addEventListener("click", () => {
     gameScreen.classList.add("hidden");
     menuScreen.classList.remove("hidden");
+    cancelAnimationFrame(raf);
   });
   winMain.addEventListener("click", () => {
     winPopup.classList.add("hidden");
