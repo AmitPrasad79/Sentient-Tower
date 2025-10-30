@@ -235,4 +235,42 @@ html, body {
   }
 }
 
+/* Keep game container centered and fixed height */
+#game, #menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 400px;
+  max-width: 90%;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 0 25px rgba(255, 102, 204, 0.4);
+}
+
+/* Fix height so it doesn’t stretch full viewport */
+#game.active, #menu.active {
+  height: 600px; /* adjust to your preferred visible height */
+}
+
+/* Center everything vertically */
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #0a0015 0%, #000 100%);
+  overflow: hidden;
+}
+
+/* Canvas box styling */
+#towerCanvas {
+  background: #000;
+  border-radius: 12px;
+  width: 100%;
+  height: 300px; /* locked tower area height */
+  display: block;
+}
 
