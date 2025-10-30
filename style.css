@@ -251,38 +251,5 @@ body, html {
   display: flex; /* not block */
 }
 
-.tower-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: calc(100vh - 120px); /* leaves space for control bar */
-}
 
-.tower-box {
-  width: 70vw;
-  max-width: 500px;
-  height: 90%;
-  background: #000;
-  border: 3px solid rgba(255, 102, 204, 0.5);
-  border-radius: 16px;
-  box-shadow:
-    0 0 30px rgba(255, 102, 204, 0.4),
-    inset 0 0 30px rgba(255, 102, 204, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
-#game.active {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-#game.hidden {
-  display: none !important;
-}
 
