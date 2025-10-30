@@ -132,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const last = tower[tower.length - 1];
     const fromLeft = Math.random() < 0.5;
     const startX = fromLeft ? -last.w / 2 : W + last.w / 2;
+
     moving = {
       x: startX,
       y: last.y - blockHeight - 4,
@@ -139,9 +140,13 @@ document.addEventListener("DOMContentLoaded", () => {
       h: blockHeight,
       dir: fromLeft ? 1 : -1,
       color: "#ff66cc",
-    };
-    speed = baseSpeed + tower.length * 0.25;
-  }
+  };
+
+  // make sure game is running before animating
+  gameRunning = true;
+  speed = baseSpeed + tower.length * 0.25;
+  raf = requestAnimationFrame(loop);
+}
 
   // --- Draw Block ---
   function drawBlock(b) {
@@ -154,10 +159,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Main Loop ---
   function loop() {
+    if (!gameRunning) return;
+
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
-
+  
     const goalHeight = 80;
     ctx.strokeStyle = "#ffea00";
     ctx.lineWidth = 3;
@@ -170,9 +177,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.textAlign = "center";
     ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
+    // Draw all stacked blocks
     for (const b of tower) drawBlock(b);
 
-    if (moving && gameRunning) {
+    // Move current block
+    if (moving) {
       moving.x += moving.dir * speed;
       if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
         moving.dir *= -1;
@@ -180,17 +189,17 @@ document.addEventListener("DOMContentLoaded", () => {
       drawBlock(moving);
     }
 
-    // Win check
-    if (gameRunning && tower.length > 1) {
-      const topBlock = tower[tower.length - 1];
-      if (topBlock.y - topBlock.h / 2 <= goalHeight) {
-        winGame();
-        return;
-      }
+  // Win check
+  if (tower.length > 1) {
+    const topBlock = tower[tower.length - 1];
+    if (topBlock.y - topBlock.h / 2 <= goalHeight) {
+      winGame();
+      return;
     }
-
-    raf = requestAnimationFrame(loop);
   }
+
+  raf = requestAnimationFrame(loop);
+}
 
   // --- Place Block ---
   function placeBlock() {
