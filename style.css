@@ -240,10 +240,6 @@ body, html {
   text-align: center;
 }
 
-#game {
-  display: none; /* hide game initially */
-}
-
 #menu.hidden {
   display: none;
 }
