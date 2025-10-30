@@ -245,7 +245,7 @@ function resizeCanvas() {
     if (e.code === "Space") placeBlock();
   });
 
-  // 🏠 Menu / Reset
+   // 🏠 Menu / Reset
   function backToMenu() {
     resetGameState();
     winPopup.classList.add("hidden");
@@ -254,7 +254,18 @@ function resizeCanvas() {
     menuScreen.classList.remove("hidden");
   }
 
-  resetBtn.addEventListener("click", backToMenu);
+  // ✅ FIXED RESET BUTTON — stay in game, just restart it
+  resetBtn.addEventListener("click", () => {
+    console.log("🔄 Reset pressed — restarting game");
+    resetGameState();
+    winPopup.classList.add("hidden");
+    losePopup.classList.add("hidden");
+    gameScreen.classList.remove("hidden");
+    menuScreen.classList.add("hidden");
+    resizeCanvas();
+    runCountdown(); // restart countdown & game
+  });
+
   menuBtn.addEventListener("click", backToMenu);
   winMain.addEventListener("click", backToMenu);
   loseMain.addEventListener("click", backToMenu);
