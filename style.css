@@ -251,5 +251,13 @@ body, html {
   display: flex; /* not block */
 }
 
+#game.active {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
 
+#game.hidden {
+  display: none !important;
+}
 
