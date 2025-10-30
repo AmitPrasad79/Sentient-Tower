@@ -30,13 +30,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let countdownTimer = null;
 
   // 🔧 Resize canvas
-  function resizeCanvas() {
-    const rect = towerCanvas.parentElement.getBoundingClientRect();
-    W = Math.max(200, Math.floor(rect.width));
-    H = Math.max(200, Math.floor(rect.height));
-    towerCanvas.width = W;
-    towerCanvas.height = H;
-  }
+function resizeCanvas() {
+  const rect = towerCanvas.getBoundingClientRect();
+  W = rect.width;
+  H = rect.height;
+  towerCanvas.width = W;
+  towerCanvas.height = H;
+}
+  
   window.addEventListener("resize", resizeCanvas);
 
   // 🔧 Mode buttons
