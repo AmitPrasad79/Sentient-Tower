@@ -265,7 +265,7 @@ body, html {
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: calc(100vh - 160px); /* full height minus controls */
+  height: calc(100% - 160px); /* full height minus controls */
 }
 
 .tower-box {
