@@ -1,15 +1,13 @@
-// 🌸 Safe fall.js for Sentient Tower
 const bgCanvas = document.getElementById("bgCanvas");
 const ctx = bgCanvas.getContext("2d");
 
-// Always push background fully behind all content
 bgCanvas.style.position = "fixed";
 bgCanvas.style.top = "0";
 bgCanvas.style.left = "0";
 bgCanvas.style.width = "100%";
 bgCanvas.style.height = "100%";
-bgCanvas.style.zIndex = "-2";          // 👈 ensures it's behind everything
-bgCanvas.style.pointerEvents = "none"; // 👈 so it never blocks clicks
+bgCanvas.style.zIndex = "-2";          
+bgCanvas.style.pointerEvents = "none"; 
 
 function resizeBg() {
   bgCanvas.width = window.innerWidth;
