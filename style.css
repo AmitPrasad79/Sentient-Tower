@@ -235,12 +235,5 @@ html, body {
   }
 }
 
-/* Canvas box styling */
-#towerCanvas {
-  background: #000;
-  border-radius: 12px;
-  width: 100%;
-  height: 300px; /* locked tower area height */
-  display: block;
-}
+
 
