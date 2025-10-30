@@ -254,7 +254,6 @@ body, html {
 #game.active {
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
 
 #game.hidden {
