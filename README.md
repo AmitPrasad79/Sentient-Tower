@@ -3,7 +3,7 @@
 **Sentient Tower** is a fast-paced reflex and precision stacking game built with **HTML5 Canvas**, **JavaScript**, and **CSS3**.  
 Your goal is to **build a perfectly aligned tower** that reaches the golden goal line — without missing a block!
 
-![Gameplay Preview](preview.png)
+![Gameplay Preview](images/preview.png)
 
 ---
 
