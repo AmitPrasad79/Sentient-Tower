@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Utility ---
   function resizeCanvas() {
-    const rect = towerCanvas.getBoundingClientRect();
+    const rect = towerCanvas.parentElement.getBoundingClientRect();
     W = rect.width;
     H = rect.height;
     towerCanvas.width = W;
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     if (startBtn.disabled) return;
 
-    // Reset everything
+    // Reset all game state
     cancelAnimationFrame(raf);
     clearInterval(countdownTimer);
     tower = [];
@@ -72,8 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Switch screens
     menuScreen.classList.add("hidden");
     gameScreen.classList.remove("hidden");
+    gameScreen.classList.add("active");
 
-    // Make sure canvas is visible and ready
+    // Prepare canvas and run countdown
     setTimeout(() => {
       resizeCanvas();
       runCountdown();
