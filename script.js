@@ -66,9 +66,14 @@ document.addEventListener("DOMContentLoaded", () => {
     countdown = 3;
     scoreEl.textContent = "Score: 0";
     winPopup.classList.add("hidden");
-    resizeCanvas();
-    runCountdown();
+
+    // Wait for screen to become visible before resizing
+    setTimeout(() => {
+      resizeCanvas(); // re-measure visible game area
+      runCountdown();
+    }, 50);
   }
+
 
   // ✅ Countdown
   function runCountdown() {
