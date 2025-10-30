@@ -22,14 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let countdown = 3;
   let raf;
 
+  // ✅ FIXED CANVAS SIZE (480x640 for consistent gameplay)
   function resizeCanvas() {
-    const rect = towerCanvas.parentElement.getBoundingClientRect();
-    W = rect.width;
-    H = rect.height;
+    W = 480;
+    H = 640;
     towerCanvas.width = W;
     towerCanvas.height = H;
   }
-  window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
 
   // ✅ Difficulty buttons
@@ -48,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ Start Game
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    // Hide menu and show game screen
     menuScreen.classList.add("hidden");
     menuScreen.classList.remove("active");
     gameScreen.classList.remove("hidden");
@@ -67,13 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreEl.textContent = "Score: 0";
     winPopup.classList.add("hidden");
 
-    // Wait for screen to become visible before resizing
-    setTimeout(() => {
-      resizeCanvas(); // re-measure visible game area
-      runCountdown();
-    }, 50);
+    resizeCanvas();
+    runCountdown();
   }
-
 
   // ✅ Countdown
   function runCountdown() {
@@ -142,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
+    // Goal line
     const goalHeight = 80;
     ctx.strokeStyle = "#ffea00";
     ctx.lineWidth = 3;
@@ -154,8 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.textAlign = "center";
     ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
+    // Draw tower
     for (const b of tower) drawBlock(b);
 
+    // Move block
     if (moving && gameRunning) {
       moving.x += moving.dir * speed;
       if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
@@ -165,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (moving) drawBlock(moving);
 
+    // Win check
     if (tower.length > 1 && gameRunning) {
       const topBlock = tower[tower.length - 1];
       if (topBlock.y - topBlock.h / 2 <= goalHeight) {
@@ -179,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     raf = requestAnimationFrame(loop);
   }
 
+  // ✅ Win & Lose Popups
   function showWinPopup() {
     winPopup.querySelector("h2").textContent = "🎉 You Win!";
     winPopup.querySelector("#win-text").textContent = "You reached the Goal Line!";
@@ -198,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showLosePopup();
   }
 
+  // ✅ Place block logic
   function placeBlock() {
     if (!gameRunning || !moving) return;
     const top = tower[tower.length - 1];
