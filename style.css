@@ -250,3 +250,23 @@ body, html {
 #menu.active {
   display: flex; /* not block */
 }
+
+/* ✅ SCREENS */
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* remove this old one! ❌
+#game {
+  display: none; 
+}
+*/
+
+#menu.active {
+  display: flex; /* keep flex for centering */
+}
+
