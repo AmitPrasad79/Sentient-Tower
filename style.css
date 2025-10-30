@@ -234,3 +234,12 @@ html, body {
     margin: 20px auto;
   }
 }
+
+#menu, #game {
+  transition: opacity 0.3s ease;
+}
+#menu.hidden, #game.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
