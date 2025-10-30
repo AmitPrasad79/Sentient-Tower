@@ -50,16 +50,15 @@ document.addEventListener("DOMContentLoaded", () => {
   /** ✅ Start Game **/
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    if (startBtn.disabled) return; // must pick mode
+    if (startBtn.disabled) return;
+    // Hide menu, show game
     menuScreen.classList.add("hidden");
-    menuScreen.classList.remove("active");
     gameScreen.classList.remove("hidden");
-    gameScreen.classList.add("active");
 
     setTimeout(() => {
       resizeCanvas();
       startGame();
-    }, 150);
+    }, 200);
   });
 
   /** ✅ Game Setup **/
@@ -90,8 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (countdown < 0) {
         clearInterval(timer);
+        resizeCanvas(); // ✅ ensure correct dimensions
         initTower();
-        gameRunning = true;
+        gameRunning = true; // ✅ now movement starts
         loop();
       }
       countdown--;
@@ -143,7 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
-    // goal line
     const goalHeight = 80;
     ctx.strokeStyle = "#ffea00";
     ctx.lineWidth = 3;
@@ -156,10 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.textAlign = "center";
     ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
-    // draw tower
     for (const b of tower) drawBlock(b);
 
-    // move block
     if (moving && gameRunning) {
       moving.x += moving.dir * speed;
       if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W) {
@@ -168,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
       drawBlock(moving);
     }
 
-    // check win
     if (tower.length > 1 && gameRunning) {
       const topBlock = tower[tower.length - 1];
       if (topBlock.y - topBlock.h / 2 <= goalHeight) {
@@ -186,15 +182,13 @@ document.addEventListener("DOMContentLoaded", () => {
   /** ✅ Popups **/
   function showWinPopup() {
     winPopup.querySelector("h2").textContent = "🎉 You Win!";
-    winPopup.querySelector("#win-text").textContent =
-      "You reached the Goal Line!";
+    winPopup.querySelector("#win-text").textContent = "You reached the Goal Line!";
     winPopup.classList.remove("hidden");
   }
 
   function showLosePopup() {
     winPopup.querySelector("h2").textContent = "💀 You Lose!";
-    winPopup.querySelector("#win-text").textContent =
-      "Your tower collapsed!";
+    winPopup.querySelector("#win-text").textContent = "Your tower collapsed!";
     winPopup.classList.remove("hidden");
   }
 
@@ -243,9 +237,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   resetBtn.addEventListener("click", startGame);
   menuBtn.addEventListener("click", () => {
+    cancelAnimationFrame(raf);
+    gameRunning = false;
+    moving = null;
     gameScreen.classList.add("hidden");
     menuScreen.classList.remove("hidden");
-    cancelAnimationFrame(raf);
   });
   winMain.addEventListener("click", () => {
     winPopup.classList.add("hidden");
