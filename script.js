@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let raf = null;
   let countdownTimer = null;
 
-  // 🧩 Resize canvas dynamically
+  // 🔧 Resize canvas
   function resizeCanvas() {
     const rect = towerCanvas.parentElement.getBoundingClientRect();
     W = Math.max(200, Math.floor(rect.width));
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("resize", resizeCanvas);
 
-  // 🧩 Difficulty Buttons
+  // 🔧 Mode buttons
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       modeBtns.forEach((b) => b.classList.remove("active"));
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 🧩 Reset all game state
+  // 🔧 Reset full state
   function resetGameState() {
     cancelAnimationFrame(raf);
     clearInterval(countdownTimer);
@@ -63,10 +63,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.clearRect(0, 0, W, H);
   }
 
-  // 🧩 Start Game
+  // 🎮 Start Game
   startBtn.addEventListener("click", (e) => {
     e.preventDefault();
     if (startBtn.disabled) return;
+
     resetGameState();
     winPopup.classList.add("hidden");
     losePopup.classList.add("hidden");
@@ -82,10 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   });
 
-  // 🧩 Countdown before start
+  // ⏳ Countdown
   function runCountdown() {
     countdown = 3;
     clearInterval(countdownTimer);
+
     countdownTimer = setInterval(() => {
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "#000";
@@ -104,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000);
   }
 
-  // 🧩 Initialize tower and start animation
+  // 🧱 Initialize game blocks
   function initTowerAndStart() {
     tower = [
       {
@@ -115,12 +117,13 @@ document.addEventListener("DOMContentLoaded", () => {
         color: "#ff66cc",
       },
     ];
+
     spawnMoving();
     gameRunning = true;
-    loop();
+    loop(); // 👈 ensures animation begins right away
   }
 
-  // 🧩 Create next moving block
+  // 🧱 Spawn moving block
   function spawnMoving() {
     const last = tower[tower.length - 1];
     const fromLeft = Math.random() < 0.5;
@@ -133,9 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
       dir: fromLeft ? 1 : -1,
       color: "#ff66cc",
     };
-    speed = baseSpeed + Math.min(4, tower.length * 0.12);
+    speed = baseSpeed + Math.min(4, tower.length * 0.15);
   }
 
+  // 🎨 Draw block
   function drawBlock(b) {
     ctx.save();
     ctx.translate(b.x, b.y);
@@ -144,13 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.restore();
   }
 
-  // 🧩 Main game loop
+  // 🔁 Main loop
   function loop() {
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
 
-    // goal line
+    // Goal line
     const goalHeight = 80;
     ctx.strokeStyle = "#ffea00";
     ctx.lineWidth = 2;
@@ -164,13 +168,22 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.fillText("⭐ Goal Line", W / 2, goalHeight - 10);
 
     tower.forEach(drawBlock);
+
+    // ✨ Move and bounce
     if (moving && gameRunning) {
       moving.x += moving.dir * speed;
-      if (moving.x - moving.w / 2 <= 0 || moving.x + moving.w / 2 >= W)
-        moving.dir *= -1;
+
+      if (moving.x - moving.w / 2 <= 0) {
+        moving.x = moving.w / 2;
+        moving.dir = 1;
+      } else if (moving.x + moving.w / 2 >= W) {
+        moving.x = W - moving.w / 2;
+        moving.dir = -1;
+      }
       drawBlock(moving);
     }
 
+    // Win condition
     if (gameRunning && tower.length > 1) {
       const top = tower[tower.length - 1];
       if (top.y - top.h / 2 <= goalHeight) {
@@ -181,10 +194,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
     }
+
     raf = requestAnimationFrame(loop);
   }
 
-  // 🧩 Place block
+  // 🖱️ Place Block
   function placeBlock() {
     if (!gameRunning || !moving) return;
     const top = tower[tower.length - 1];
@@ -207,13 +221,16 @@ document.addEventListener("DOMContentLoaded", () => {
     score++;
     scoreEl.textContent = `Score: ${score}`;
     moving = null;
-    setTimeout(() => gameRunning && spawnMoving(), 300);
+    setTimeout(() => {
+      if (gameRunning) spawnMoving();
+    }, 200);
   }
 
-  // 🧩 Win / Lose popups
+  // 🎉 Win / Lose
   function showWin() {
     winPopup.classList.remove("hidden");
   }
+
   function showLose() {
     losePopup.classList.remove("hidden");
     cancelAnimationFrame(raf);
@@ -221,21 +238,19 @@ document.addEventListener("DOMContentLoaded", () => {
     moving = null;
   }
 
-  // 🧩 Click/Space Input
+  // 🕹️ Controls
   towerCanvas.addEventListener("click", placeBlock);
   window.addEventListener("keydown", (e) => {
     if (e.code === "Space") placeBlock();
   });
 
-  // 🧩 Menu / Reset
+  // 🏠 Menu / Reset
   function backToMenu() {
     resetGameState();
     winPopup.classList.add("hidden");
     losePopup.classList.add("hidden");
     gameScreen.classList.add("hidden");
-    gameScreen.classList.remove("active");
     menuScreen.classList.remove("hidden");
-    menuScreen.classList.add("active");
   }
 
   resetBtn.addEventListener("click", backToMenu);
@@ -249,6 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resizeCanvas();
     runCountdown();
   });
+
   loseRestart.addEventListener("click", () => {
     resetGameState();
     losePopup.classList.add("hidden");
@@ -257,5 +273,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   resizeCanvas();
-  console.log("✅ Script loaded successfully");
+  console.log("✅ Game initialized successfully");
 });
