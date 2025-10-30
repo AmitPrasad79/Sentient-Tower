@@ -1,8 +1,9 @@
+/* === Global Reset === */
 * {
   box-sizing: border-box;
 }
 
-body, html {
+html, body {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
@@ -15,22 +16,21 @@ body, html {
   overflow: hidden;
 }
 
-/* ✅ BACKGROUND CANVAS — always behind everything */
+/* === BACKGROUND CANVAS (always behind everything) === */
 #bgCanvas {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  z-index: -10; /* way behind everything */
-  pointer-events: none; /* clicks pass through */
   background: radial-gradient(circle at center, #0a0013 20%, #000 100%);
+  z-index: 0;
+  pointer-events: none; /* ensures clicks pass through */
 }
 
-/* ✅ GAME CONTAINER */
+/* === GAME CONTAINER === */
 .game-container {
   position: relative;
-  z-index: 10;
+  z-index: 5;
   border: 3px solid rgba(255, 102, 204, 0.25);
   border-radius: 16px;
   background: rgba(20, 0, 20, 0.6);
@@ -42,19 +42,36 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 14px;
 }
 
-/* ✅ SCREENS */
-.screen.hidden {
+/* === SCREENS (Menu, Game, etc.) === */
+.screen {
   display: none;
 }
+
 .screen.active {
   display: block;
 }
 
-/* ✅ TEXT */
+.hidden {
+  display: none !important;
+}
+
+/* === MENU === */
+#menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+#menu.active {
+  display: flex;
+}
+
+/* === TEXT === */
 .title {
   font-size: 2rem;
   color: #ff66cc;
@@ -67,7 +84,7 @@ body, html {
   margin-bottom: 12px;
 }
 
-/* ✅ BUTTONS */
+/* === BUTTONS === */
 .btn, .mode-btn {
   background: #1a001a;
   border: 2px solid #ff66cc;
@@ -95,7 +112,12 @@ body, html {
   margin-top: 12px;
 }
 
-/* ✅ CONTROLS BAR */
+#start-btn {
+  display: block;
+  margin: 20px auto 0;
+}
+
+/* === CONTROLS BAR === */
 .controls-container {
   border: 2px solid rgba(255, 102, 204, 0.3);
   border-radius: 12px;
@@ -119,7 +141,7 @@ body, html {
   color: #ffb3d9;
 }
 
-/* ✅ TOWER BOX */
+/* === TOWER BOX === */
 .tower-wrapper {
   display: flex;
   justify-content: center;
@@ -147,9 +169,11 @@ body, html {
   display: block;
   background: #000;
   border-radius: 16px;
+  position: relative;
+  z-index: 1;
 }
 
-/* ✅ POPUP */
+/* === POPUP === */
 .popup {
   position: fixed;
   inset: 0;
@@ -177,7 +201,7 @@ body, html {
   color: #ff66cc;
 }
 
-/* ✅ FOOTER */
+/* === FOOTER === */
 #footer {
   position: fixed;
   bottom: 15px;
@@ -186,7 +210,7 @@ body, html {
   font-size: 14px;
   text-align: center;
   color: #aaa;
-  z-index: 5;
+  z-index: 10;
 }
 
 #footer a {
@@ -198,7 +222,7 @@ body, html {
   text-decoration: underline;
 }
 
-/* ✅ RESPONSIVE */
+/* === RESPONSIVE === */
 @media (max-width: 640px) {
   .tower-box {
     width: 90vw;
@@ -209,93 +233,4 @@ body, html {
     padding: 16px;
     margin: 20px auto;
   }
-}
-
-#menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;     /* centers horizontally */
-  justify-content: center; /* centers vertically if you want */
-  text-align: center;
-}
-
-#menu h1,
-#menu p {
-  text-align: center;
-}
-
-.mode-btn {
-  margin: 5px;
-}
-
-#start-btn {
-  display: block;
-  margin: 20px auto 0;
-}
-
-#menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-#menu.hidden {
-  display: none;
-}
-#menu.active {
-  display: flex; /* not block */
-}
-
-/* ✅ SCREENS */
-.screen {
-  display: none;
-}
-
-.screen.active {
-  display: block;
-}
-
-/* remove this old one! ❌
-#game {
-  display: none; 
-}
-*/
-
-#menu.active {
-  display: flex; /* keep flex for centering */
-}
-
-/* === Fix z-index and click issues === */
-#bgCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none; /* makes sure it never blocks clicks */
-}
-
-.game-container {
-  position: relative;
-  z-index: 2; /* bring all UI above background canvas */
-}
-
-#app, #menu, #game, .popup {
-  position: relative;
-  z-index: 3;
-}
-
-#towerCanvas {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* optional: make sure .hidden actually hides */
-.hidden {
-  display: none !important;
 }
