@@ -1,8 +1,9 @@
+/* === GLOBAL === */
 * {
   box-sizing: border-box;
 }
 
-body, html {
+html, body {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
@@ -15,48 +16,47 @@ body, html {
   overflow: hidden;
 }
 
-/* ✅ BACKGROUND CANVAS — always behind everything */
+/* === BACKGROUND CANVAS === */
 #bgCanvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -10; /* way behind everything */
-  pointer-events: none; /* clicks pass through */
-  background: radial-gradient(circle at center, #0a0013 20%, #000 100%);
+  z-index: -10;
+  pointer-events: none;
+  background: radial-gradient(circle at center, #0a0013 25%, #000 100%);
 }
 
-/* ✅ GAME CONTAINER */
+/* === GAME CONTAINER === */
 .game-container {
   position: relative;
   z-index: 10;
-  border: 3px solid rgba(255, 102, 204, 0.25);
-  border-radius: 16px;
-  background: rgba(20, 0, 20, 0.6);
+  width: 560px;
+  border: 3px solid rgba(255, 102, 204, 0.3);
+  border-radius: 20px;
+  background: rgba(20, 0, 20, 0.7);
   box-shadow:
-    0 0 25px rgba(255, 102, 204, 0.15),
-    inset 0 0 20px rgba(255, 102, 204, 0.1);
+    0 0 40px rgba(255, 102, 204, 0.3),
+    inset 0 0 30px rgba(255, 102, 204, 0.15);
   padding: 24px;
-  margin: 50px auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
 }
 
-/* ✅ SCREENS */
-.screen.hidden {
-  display: none;
-}
-.screen.active {
-  display: block;
+/* === SCREENS === */
+.screen.hidden { display: none; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* === MENU === */
+#menu {
+  text-align: center;
 }
 
-/* ✅ TEXT */
 .title {
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #ff66cc;
   margin-bottom: 8px;
   text-shadow: 0 0 16px rgba(255, 102, 204, 0.3);
@@ -64,25 +64,25 @@ body, html {
 
 .hint {
   color: #ffcce6;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
-/* ✅ BUTTONS */
-.btn, .mode-btn {
+.mode-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
   background: #1a001a;
   border: 2px solid #ff66cc;
   color: #ff66cc;
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 10px;
   cursor: pointer;
   margin: 6px;
   font-weight: 600;
   transition: transform 0.15s ease, background 0.3s ease;
-}
-
-.btn.primary {
-  background: #ff66cc;
-  color: #200020;
 }
 
 .mode-btn.active {
@@ -92,10 +92,35 @@ body, html {
 }
 
 .menu-actions {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
-/* ✅ CONTROLS BAR */
+.btn {
+  background: #1a001a;
+  border: 2px solid #ff66cc;
+  color: #ff66cc;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.15s ease, background 0.3s ease;
+}
+
+.btn.primary {
+  background: #ff66cc;
+  color: #200020;
+}
+
+.btn:hover,
+.mode-btn:hover {
+  transform: scale(1.05);
+}
+
+/* === GAME SCREEN === */
+#game {
+  width: 100%;
+}
+
 .controls-container {
   border: 2px solid rgba(255, 102, 204, 0.3);
   border-radius: 12px;
@@ -103,9 +128,9 @@ body, html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   background: rgba(40, 0, 40, 0.6);
-  box-shadow: 0 0 12px rgba(255, 102, 204, 0.2);
+  box-shadow: 0 0 12px rgba(255, 102, 204, 0.25);
 }
 
 .left-controls, .right-controls {
@@ -119,10 +144,11 @@ body, html {
   color: #ffb3d9;
 }
 
-/* ✅ TOWER BOX */
+/* === TOWER AREA === */
 .tower-wrapper {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .tower-box {
@@ -149,43 +175,41 @@ body, html {
   border-radius: 16px;
 }
 
-/* ✅ POPUP */
+/* === POPUP === */
 .popup {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   z-index: 20;
 }
 
-.popup.hidden {
-  display: none;
-}
+.popup.hidden { display: none; }
 
 .popup-inner {
   background: #1a001a;
-  padding: 20px;
+  padding: 24px;
   border-radius: 12px;
-  border: 2px solid rgba(255, 102, 204, 0.3);
+  border: 2px solid rgba(255, 102, 204, 0.4);
   text-align: center;
-  box-shadow: 0 0 20px rgba(255, 102, 204, 0.2);
+  box-shadow: 0 0 25px rgba(255, 102, 204, 0.3);
 }
 
 .popup-inner h2 {
   color: #ff66cc;
 }
 
-/* ✅ FOOTER */
+/* === FOOTER === */
 #footer {
   position: fixed;
-  bottom: 15px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 14px;
+  color: #999;
   text-align: center;
-  color: #aaa;
   z-index: 5;
 }
 
@@ -198,65 +222,19 @@ body, html {
   text-decoration: underline;
 }
 
-/* ✅ RESPONSIVE */
+/* === RESPONSIVE === */
 @media (max-width: 640px) {
+  .game-container {
+    width: 95%;
+    padding: 16px;
+  }
+
   .tower-box {
     width: 90vw;
     height: 120vw;
   }
-  .game-container {
-    width: 94%;
-    padding: 16px;
-    margin: 20px auto;
+
+  .title {
+    font-size: 1.8rem;
   }
 }
-
-#menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;     /* centers horizontally */
-  justify-content: center; /* centers vertically if you want */
-  text-align: center;
-}
-
-#menu h1,
-#menu p {
-  text-align: center;
-}
-
-.mode-btn {
-  margin: 5px;
-}
-
-#start-btn {
-  display: block;
-  margin: 20px auto 0;
-}
-
-#menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-#game {
-  display: none; /* hide game initially */
-}
-
-#menu.hidden {
-  display: none;
-}
-#menu.active {
-  display: flex; /* not block */
-}
-
-#game.active {
-  display: flex;
-  flex-direction: column;
-}
-
-#game.hidden {
-  display: none !important;
-}
-
