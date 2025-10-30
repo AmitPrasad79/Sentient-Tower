@@ -266,3 +266,36 @@ body, html {
   display: flex; /* keep flex for centering */
 }
 
+/* === Fix z-index and click issues === */
+#bgCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* makes sure it never blocks clicks */
+}
+
+.game-container {
+  position: relative;
+  z-index: 2; /* bring all UI above background canvas */
+}
+
+#app, #menu, #game, .popup {
+  position: relative;
+  z-index: 3;
+}
+
+#towerCanvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* optional: make sure .hidden actually hides */
+.hidden {
+  display: none !important;
+}
