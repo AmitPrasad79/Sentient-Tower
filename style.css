@@ -251,3 +251,27 @@ body, html {
   display: flex; /* not block */
 }
 
+.tower-box, #towerCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tower-wrapper {
+  width: 100%;
+  height: calc(100vh - 80px); /* Adjust if you have top controls */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game.active {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#game.hidden {
+  display: none !important;
+}
+
