@@ -260,27 +260,6 @@ body, html {
   display: none !important;
 }
 
-.tower-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: calc(100% - 160px); /* full height minus controls */
-}
-
-.tower-box {
-  width: min(90vw, 480px);
-  height: 100%;
-  background: #000;
-  border: 3px solid rgba(255, 102, 204, 0.5);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
 /* Make the main game container fill available space */
 #game {
   display: flex;
